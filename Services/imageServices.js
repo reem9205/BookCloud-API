@@ -4,75 +4,98 @@ const Image = require('../Models/imageModel');
 
 class ImageService {
     constructor() {
-        this.pool = null; // Initialize the database connection pool as null
-        this.init(); // Initialize the database connection pool
+        this.pool = null;
+        this.init();
     }
 
-    /**
-     * Initializes the database connection pool.
-     * This method is called automatically when an instance of the service is created.
-     * @returns {Promise<void>} - Returns a promise once the database connection pool is set up.
-     */
     async init() {
-        this.pool = await initDB(); // Initialize the database connection pool
+        this.pool = await initDB();
     }
 
-    /**
-     * Creates a new image entry in the database.
-     * Converts image buffers to base64 format before storing them in the database.
-     * @param {Object} param0 - The object containing image buffers.
-     * @param {Buffer} param0.image_front - Buffer of the front image.
-     * @param {Buffer} param0.image_side - Buffer of the side image.
-     * @returns {Promise<Object>} - Returns the created image entry with its ID and base64-encoded data.
-     * @throws {Error} - Throws an error if there is an issue with the database query.
-     */
-    async createImage({ image_front, image_side }) {
+    async getAllImages() {
         try {
-            // Convert image buffers to base64 strings
-            const imageFrontBase64 = image_front.toString('base64');
-            const imageSideBase64 = image_side.toString('base64');
+            // Fetch rows from the database
+            const [rows] = await this.pool.query('SELECT * FROM image'); // Adjust query if needed
 
-            // Insert the base64-encoded images into the database
-            const [result] = await this.pool.query(
-                'INSERT INTO image (image_front, image_side) VALUES (?, ?)',
-                [imageFrontBase64, imageSideBase64]
-            );
 
-            // Check if an image ID was generated (indicating success)
-            if (!result.insertId) {
-                throw new Error('Failed to create image entry'); // Throw an error if insert failed
-            }
+            // Convert each blob to Base64
+            const images = rows.map((row) => {
+                const base64Image = Buffer.from(row.image_front).toString('base64'); // Convert blob to Base64
+                return {
+                    id: row.image_Id, // Include the ID for tracking
+                    image: `data:image/jpeg;base64,${base64Image}` // Add MIME type
+                };
+            });
 
-            console.log('Image entry created successfully with ID:', result.insertId); // Log the new image ID
 
-            // Return the created image entry details
-            return {
-                id: result.insertId,
-                image_front: imageFrontBase64,
-                image_side: imageSideBase64,
-            };
 
+            return images; // Return the array of images
         } catch (e) {
-            console.error('Error during image insertion:', e.message); // Log any error that occurs
-            throw new Error(`Error creating image: ${e.message}`); // Rethrow a new error with a detailed message
+            throw new Error(`Error fetching images: ${e.message}`);
         }
     }
 
-    /**
-     * Deletes an existing image entry by its ID.
-     * @param {number} id - The ID of the image to be deleted.
-     * @returns {Promise<boolean>} - Returns true if the deletion was successful, otherwise false.
-     * @throws {Error} - Throws an error if there is an issue with the database query.
-     */
+
+
+    async createImage(base64Image) {
+        try {
+
+
+            // Extract the Base64 part (removing the prefix like "data:image/jpeg;base64,")
+            const base64Data = base64Image.split(',')[1];
+
+            if (!base64Data) {
+                throw new Error('Invalid Base64 image format');
+            }
+
+            // Convert Base64 to binary data (Buffer)
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+
+            // Insert binary data into the database
+            const [result] = await this.pool.query(
+                `INSERT INTO image (image_front) VALUES (?)`,
+                [imageBuffer]
+            );
+
+            if (!result.insertId) {
+                throw new Error('Failed to create image entry');
+            }
+
+            return { id: result.insertId, image_front: base64Image }; // You can also return the buffer if needed
+        } catch (e) {
+            throw new Error(`Error creating image: ${e.message}`);
+        }
+    }
+
+
+
+    async getImage(id) {
+        try {
+            const [rows] = await this.pool.query(
+                'SELECT image_front, image_side FROM image WHERE image_Id = ?',
+                [id]
+            );
+
+            if (rows.length === 0) {
+                throw new Error('Image not found');
+            }
+
+            return rows[0];
+        } catch (e) {
+            console.error('Error fetching image:', e.message);
+            throw new Error(`Error retrieving image: ${e.message}`);
+        }
+    }
+
     async deleteImage(id) {
         try {
-            // Execute the delete query for the image by ID
             const [result] = await this.pool.query('DELETE FROM image WHERE image_Id = ?', [id]);
-            return result.affectedRows > 0; // Return true if an image was deleted, otherwise false
+            return result.affectedRows > 0;
         } catch (e) {
-            throw new Error(`Error deleting image: ${e.message}`); // Rethrow an error if the deletion fails
+            throw new Error(`Error deleting image: ${e.message}`);
         }
     }
 }
+
 
 module.exports = new ImageService(); // Export an instance of the ImageService

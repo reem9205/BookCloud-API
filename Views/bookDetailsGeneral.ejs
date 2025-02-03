@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Book Details</title>
+    <!-- Bootstrap CSS for responsiveness and default styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* General body and HTML styling */
+        body,
+        html {
+            margin: 0;
+            /* Remove default margin */
+            padding: 0;
+            /* Remove default padding */
+            height: 100%;
+            /* Ensure body spans full viewport height */
+            background: linear-gradient(to bottom right, #8FABB7, #D8DFE5, #FBFBFB);
+            /* Gradient background */
+            font-family: 'Itim', cursive, sans-serif !important;
+            /* Stylish font */
+            color: #333;
+            /* Dark gray text color for readability */
+            overflow: hidden;
+            /* Prevent scrolling */
+        }
+
+        /* Main container styling */
+        .container {
+            min-height: 100vh;
+            /* Full height to fill viewport */
+            display: flex;
+            /* Flexbox for center alignment */
+            justify-content: center;
+            /* Center content horizontally */
+            align-items: center;
+            /* Center content vertically */
+            padding: 10px;
+            /* Add padding around container */
+        }
+
+        /* Book details container styling */
+        .book-details-container {
+            background: rgba(248, 249, 251, 0.9);
+            /* Light background with slight transparency */
+            border-radius: 12px;
+            /* Rounded corners for smooth design */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow for depth */
+            margin: 20px auto;
+            /* Center the container with margin */
+            max-width: 1000px;
+            /* Limit maximum width */
+            padding: 30px;
+            /* Internal padding */
+            display: flex;
+            /* Flex layout to align image and info side by side */
+            align-items: flex-start;
+            /* Align items at the top */
+            gap: 20px;
+            /* Space between image and info sections */
+            border: 2px solid rgba(143, 171, 183, 0.8);
+            /* Border matching the gradient theme */
+        }
+
+        /* Book image container styling */
+        .book-image-container {
+            flex: 0 1 250px;
+            /* Fixed width for the image container */
+            text-align: center;
+            /* Center-align content */
+            border: 2px solid rgba(143, 171, 183, 0.8);
+            /* Border matching the theme */
+            border-radius: 12px;
+            /* Rounded corners */
+            padding: 10px;
+            /* Padding inside the container */
+            background-color: rgba(143, 171, 183, 0.3);
+            /* Subtle transparent background */
+        }
+
+        /* Book image styling */
+        .book-image-container img {
+            max-width: 100%;
+            /* Image fills the container width */
+            max-height: 350px;
+            /* Limit the height for consistency */
+            border-radius: 8px;
+            /* Rounded edges */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow for depth */
+            transition: transform 0.3s ease;
+            /* Smooth scaling on hover */
+        }
+
+        /* Image hover effect */
+        .book-image-container img:hover {
+            transform: scale(1.05);
+            /* Slight zoom-in effect */
+        }
+
+        /* Back button styling */
+        .btn-back {
+            display: inline-block;
+            /* Button treated as an inline block */
+            margin-top: 15px;
+            /* Space above the button */
+            text-decoration: none;
+            /* Remove underline */
+            color: white;
+            /* White text for contrast */
+            background-color: #8FABB7;
+            /* Match the gradient theme */
+            padding: 10px 20px;
+            /* Padding for size */
+            border-radius: 6px;
+            /* Rounded corners */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            /* Smooth hover effects */
+            font-size: 18px;
+            /* Slightly larger text for emphasis */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Shadow for elevation */
+        }
+
+        /* Back button hover effect */
+        .btn-back:hover {
+            background-color: #46656F;
+            /* Darker color on hover */
+            transform: translateY(-2px);
+            /* Slight upward movement */
+        }
+
+        /* Book information section */
+        .book-info {
+            flex: 2 1 600px;
+            /* Flexible width for info section */
+            padding: 20px;
+            /* Internal padding */
+            border: 2px solid rgba(143, 171, 183, 0.8);
+            /* Border matching theme */
+            border-radius: 12px;
+            /* Rounded corners */
+            background-color: rgba(143, 171, 183, 0.3);
+            /* Subtle transparent background */
+        }
+
+        /* Book title styling */
+        .book-info h1 {
+            font-size: 36px;
+            /* Larger font size for title */
+            font-weight: bold;
+            /* Bold title */
+            margin-bottom: 15px;
+            /* Space below the title */
+            color: #495057;
+            /* Neutral dark gray for title text */
+        }
+
+        /* Paragraph styling for book details */
+        .book-info p {
+            margin: 8px 0;
+            /* Space between paragraphs */
+            font-size: 18px;
+            /* Readable font size */
+            line-height: 1.6;
+            /* Line spacing for better readability */
+            color: #495057;
+            /* Neutral gray for text */
+        }
+
+        /* Strong text inside paragraphs */
+        .book-info p strong {
+            font-weight: bold;
+            /* Bold important text */
+            color: #333;
+            /* Slightly darker color for emphasis */
+        }
+    </style>
+
+</head>
+
+<body>
+    <% try { %>
+        <!-- Include the header partial file -->
+        <%- include('partials/header', { user: user, data }) %>
+            <% } catch (err) { %>
+                <!-- Display error if header fails to load -->
+                <p>Error loading header: <%= err.message %>
+                </p>
+                <% } %>
+
+                    <div class="container">
+                        <div class="book-details-container">
+                            <!-- Book Image Section -->
+                            <div class="book-image-container">
+                                <img src="<%= book.image ? 'data:image/jpeg;base64,' + book.image : '/path/to/default-image.jpg' %>"
+                                    alt="<%= book.title %>">
+
+                                <!-- Back Button -->
+                                <a href="/api/books/allBooksView" class="btn-back">Back to Book List</a>
+                            </div>
+
+                            <!-- Book Info Section -->
+                            <div class="book-info">
+                                <h1>
+                                    <%= book.title %>
+                                </h1>
+                                <p><strong>Author:</strong>
+                                    <%= book.author %>
+                                </p>
+                                <p><strong>ISBN:</strong>
+                                    <%= book.ISBN || 'N/A' %>
+                                </p>
+                                <p><strong>Language:</strong>
+                                    <%= book.language %>
+                                </p>
+                                <p><strong>Page Count:</strong>
+                                    <%= book.page_count %>
+                                </p>
+                                <p><strong>Publication Date:</strong>
+                                    <%= book.date ? new Date(book.date).toLocaleDateString() : 'N/A' %>
+                                </p>
+                                <p><strong>Genres:</strong>
+                                    <%= book.genres.join(', ') %></p>
+                <p><strong>Description:</strong> <%= book.description || ' No description available.' %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+</body>
+
+</html>

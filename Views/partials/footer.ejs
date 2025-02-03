@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footer Redesign</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        /* General Body Styling */
+        .custom-body {
+            display: flex;
+            /* Makes the container flex */
+            flex-direction: column;
+            /* Ensures content stacks vertically */
+            min-height: 100vh;
+            /* Ensures the body spans the full viewport height */
+            margin: 0;
+            /* Removes default margin */
+            padding: 0;
+            /* Removes default padding */
+            font-family: Arial, sans-serif;
+            /* Sets the font style */
+        }
+
+        /* Container for the main content area */
+        .custom-container {
+            flex: 1;
+            /* Ensures the container takes up available space */
+            display: flex;
+            /* Enables flex layout */
+            justify-content: center;
+            /* Centers content horizontally */
+            align-items: center;
+            /* Centers content vertically */
+            padding: 20px;
+            /* Adds padding inside the container */
+        }
+
+        /* Footer Styles */
+        .custom-footer {
+            display: flex;
+            /* Makes the footer a flex container */
+            justify-content: space-between;
+            /* Distributes space between child elements */
+            align-items: center;
+            /* Vertically centers items */
+            background-color: #333;
+            /* Dark gray background color */
+            color: white;
+            /* White text color */
+            position: fixed;
+            /* Fixes footer at the bottom of the viewport */
+            bottom: 0;
+            /* Aligns footer to the bottom */
+            width: 100%;
+            /* Ensures the footer spans the full width */
+            height: 80px;
+            /* Fixed height for the footer */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+            /* Adds a shadow above the footer */
+            padding: 0 20px;
+            /* Adds horizontal padding */
+            box-sizing: border-box;
+            /* Includes padding in element width and height */
+        }
+
+        /* Left, Middle, and Right sections of the footer */
+        .custom-footer-left,
+        .custom-footer-middle,
+        .custom-footer-right {
+            display: flex;
+            /* Flex layout for each section */
+            align-items: center;
+            /* Aligns items vertically */
+        }
+
+        /* Left Section Text Styling */
+        .custom-footer-left h1 {
+            font-size: 1.2rem;
+            /* Sets font size */
+            color: white;
+            /* White text color */
+        }
+
+        /* Middle Section Styling */
+        .custom-footer-middle {
+            flex: 1;
+            /* Takes up remaining space between left and right sections */
+            justify-content: center;
+            /* Centers content horizontally */
+            gap: 30px;
+            /* Adds space between child elements */
+        }
+
+        .custom-footer-middle h2 {
+            background-color: #8FABB7;
+            /* Light blue background */
+            padding: 8px 15px;
+            /* Adds padding inside the text container */
+            border-radius: 8px;
+            /* Rounds the corners */
+            font-size: 1.2rem;
+            /* Sets font size */
+            color: white;
+            /* White text color */
+        }
+
+        /* Vertical Separator Styling */
+        .custom-footer-middle .custom-separator {
+            width: 2px;
+            /* Sets separator thickness */
+            height: 30px;
+            /* Sets separator height */
+            background-color: #D8DFE5;
+            /* Light gray color */
+        }
+
+        /* Right Section Image Styling */
+        .custom-footer-right img {
+            cursor: pointer;
+            /* Changes cursor to pointer on hover */
+            width: 50px;
+            /* Fixed width */
+            height: 50px;
+            /* Fixed height */
+            border-radius: 50%;
+            /* Makes the image circular */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            /* Adds a shadow around the image */
+        }
+
+        .custom-footer-right img:hover {
+            transform: scale(1.1);
+            /* Scales the image slightly on hover */
+            transition: transform 0.2s;
+            /* Smooth transition effect */
+        }
+    </style>
+</head>
+
+<body class="custom-body">
+    <!-- Main Content Section -->
+    <div class="custom-container">
+        <!-- Placeholder for main content -->
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="custom-footer">
+        <!-- Left Section -->
+        <div class="custom-footer-left">
+            <h1>Total Books: <span>
+                    <%= data.nbOfBooks %>
+                </span></h1>
+            <!-- Displays the total number of books dynamically -->
+        </div>
+
+        <!-- Middle Section -->
+        <div class="custom-footer-middle">
+            <h2>Reading Goal: <span>
+                    <%= user.reading_goal %>
+                </span></h2>
+            <!-- Displays the user's reading goal dynamically -->
+            <div class="custom-separator"></div>
+            <!-- Adds a separator between the reading goal and read books -->
+            <h2>Read Books: <span>
+                    <%= data.booksRead %>
+                </span></h2>
+            <!-- Displays the number of books read dynamically -->
+        </div>
+
+        <!-- Right Section -->
+        <div class="custom-footer-right">
+            <img src="/pen3.png" alt="Add Book" data-toggle="modal" data-target="#addBookModal">
+            <!-- Clickable icon to open the Add Book modal -->
+        </div>
+    </footer>
+
+    <!-- Include Add Book Modal -->
+    <%- include('addBook') %>
+
+        <!-- Bootstrap JS and Dependencies -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+</body>
+
+</html>

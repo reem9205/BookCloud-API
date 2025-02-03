@@ -18,6 +18,7 @@
 - [Dependencies](#Dependencies)
 -[key Features](#key-features)
 -[database](#database)
+-[views](#views)
 
 ---
 
@@ -236,4 +237,103 @@ The database for the Virtual Bookshelf Organizer API is named `virtuallibrary` a
 
 This schema allows for flexible relationships between users, books, genres, and bookshelves, supporting the functionalities of the Virtual Bookshelf Organizer API.
 
+### Views
 
+1. **Homepage**  
+   **Purpose:** Acts as the entry point for all users.  
+   **Features:**  
+   - Flipbook interaction to browse books interactively.  
+   - Sign-in and sign-up buttons for authentication.  
+
+2. **Dashboard**  
+   **Purpose:** Displays the user’s bookshelves with management options.  
+   **Features:**  
+   - List or grid view of bookshelves.  
+   - Options to edit or delete bookshelves.  
+
+3. **Header**  
+   **Purpose:** Provides navigation across main sections and quick actions.  
+   **Features:**  
+   - Navigation links (e.g., Homepage, Dashboard, Search).  
+   - A "Create Bookshelf" button.  
+   - A settings icon for user options.  
+
+4. **Settings**  
+   **Purpose:** Displays user profile information with action options.  
+   **Features:**  
+   - View user information (e.g., username, email).  
+   - Options: Edit, Logout, Delete Account.  
+
+5. **Edit Settings**  
+   **Purpose:** Allows users to update their profile details and profile picture.  
+   **Features:**  
+   - Form to update username, email, and password.  
+   - Section to upload and update profile image.  
+
+6. **Footer**  
+   **Purpose:** Displays summary stats and additional tools.  
+   **Features:**  
+   - Total books in collection.  
+   - Total books read.  
+   - A pen icon to add a book.  
+
+7. **Add Book**  
+   **Purpose:** Allows users to add books to the global database and their personal collection.  
+   **Features:**  
+   - Form to input book details (e.g., title, author, genre, ISBN).  
+   - Option to add the book to the user’s collection directly.  
+
+8. **Edit Bookshelf**  
+   **Purpose:** Lets users manage the contents and settings of their bookshelves.  
+   **Features:**  
+   - Add or delete books from a bookshelf.  
+   - Update bookshelf visibility (e.g., Public/Private).  
+   - Rename or delete the bookshelf.  
+
+9. **Books**  
+   **Purpose:** Displays all books across all users.  
+   **Features:**  
+   - Option to add books to the user’s collection.  
+   - On clicking a book, show detailed information.  
+
+10. **My Collection**  
+    **Purpose:** Displays books specific to the logged-in user.  
+    **Features:**  
+    - Book details specific to the user (e.g., reading status, notes).  
+    - Option to manage the user’s private data for each book.  
+
+11. **Reviews**  
+    **Purpose:** Displays user-generated reviews with filtering options.  
+    **Features:**  
+    - Option to filter reviews by title and rating.  
+
+12. **Search**  
+    **Purpose:** Provides advanced search capabilities across the book database.  
+    **Features:**  
+    - Filter books by title, genre, or author.  
+    - Display results dynamically as the user types.  
+
+13. **Edit Book**  
+    **Purpose:** Allows users to update their personal information for a book.  
+    **Features:**  
+    - Change details like the current page or reading status.  
+
+14. **Current Book**  
+    **Purpose:** Displays books marked as "currently reading" for a user.  
+    **Features:**  
+    - Progress bar to track reading completion.  
+
+15. **Other People**  
+    **Purpose:** Displays profiles of other users.  
+    **Features:**  
+    - Shows public bookshelves and bio of the selected user.  
+
+16. **Recommendation View**  
+    **Purpose:** Displays book recommendations based on user preferences.  
+    **Features:**  
+    - Recommends books by genre or author.  
+
+17. **Sign Up**  
+    **Purpose:** Allows users to create an account.  
+    **Features:**  
+    - Collects all necessary user information for registration.

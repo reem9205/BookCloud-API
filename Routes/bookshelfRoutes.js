@@ -7,6 +7,12 @@ const router = express.Router();
 // Route to get all bookshelves
 router.get('/', (req, res) => BookshelfController.getAllBookshelf(req, res));
 
+// Route to create a new bookshelf
+router.post('/addBookshelf', (req, res) => BookshelfController.createBookshelf(req, res));
+
+// Route to edit bookshelf view
+router.get('/editBookshelfView/:bookshelf_Id', (req, res) => BookshelfController.bookshelfEdit(req, res));
+
 // Route to get a specific bookshelf by ID
 router.get('/id/:id', validateBookshelfId, (req, res) => BookshelfController.getBookshelfById(req, res));
 
@@ -19,13 +25,10 @@ router.get('/view/:view', (req, res) => BookshelfController.getBookshelfByView(r
 // Route to get a specific bookshelf by name
 router.get('/name/:name', (req, res) => BookshelfController.getBookshelfByName(req, res));
 
-// Route to create a new bookshelf
-router.post('/', validateBookshelf, (req, res) => BookshelfController.createBookshelf(req, res));
-
 // Route to update an existing bookshelf by ID
-router.put('/:id', [validateBookshelf, validateBookshelfId], (req, res) => BookshelfController.updateBookshelf(req, res));
+router.post('/update/:id', [validateBookshelf, validateBookshelfId], (req, res) => BookshelfController.updateBookshelf(req, res));
 
 // Route to delete a bookshelf by ID
-router.delete('/:id', validateBookshelfId, (req, res) => BookshelfController.deleteBookshelf(req, res));
+router.get('/delete/:id', validateBookshelfId, (req, res) => BookshelfController.deleteBookshelf(req, res));
 
 module.exports = router;

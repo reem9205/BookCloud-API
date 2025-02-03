@@ -16,7 +16,7 @@ router.get('/username/:username', (req, res) => profileController.getProfileByUs
 router.post('/', validateProfile, (req, res) => profileController.createProfile(req, res));
 
 // Route to update an existing profile by ID
-router.put('/:id', [validateProfile, validateProfileId], (req, res) => profileController.updateProfile(req, res));
+router.post('/updateProfile/:id', (req, res) => profileController.updateProfile(req, res));
 
 // Route to delete a profile by ID
 router.delete('/:id', validateProfileId, (req, res) => profileController.deleteProfile(req, res));

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General body styling */
+        body {
+            background: linear-gradient(to bottom right, #8FABB7, #D8DFE5, #FBFBFB);
+            font-family: 'Itim', cursive, sans-serif !important;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Styling for action buttons */
+        .btn-action {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #8FABB7;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-size: 18px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-action:hover {
+            background-color: #7c9f99;
+            transform: translateY(-2px);
+        }
+
+        /* Layout styling for the settings container */
+        .settings-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            padding: 20px;
+            width: 80%;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+
+        /* Styling for user settings and profile update containers */
+        .user-settings-container,
+        .profile-update-container {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #eef5ff;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styling for profile update header */
+        .profile-update-container h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #8FABB7;
+        }
+
+        /* File input margin */
+        .profile-update-container input[type="file"] {
+            margin-top: 10px;
+        }
+
+        /* Responsive layout adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .settings-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <% try { %>
+        <%- include('partials/header', { user: user }) %>
+            <% } catch (err) { %>
+                <p>Error loading header: <%= err.message %>
+                </p>
+                <% } %>
+
+                    <div class="settings-container">
+                        <!-- User Settings Form (Handles text fields like username, email, etc.) -->
+                        <div class="user-settings-container">
+                            <h1>User Settings</h1>
+                            <form action="/api/users/update/<%= user.user_Id %>" method="POST">
+                                <!-- Username -->
+                                <div class="form-group">
+                                    <label for="username"><strong>Username</strong></label>
+                                    <input type="text" id="username" name="username" class="form-control"
+                                        value="<%= user.username %>">
+                                </div>
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label for="email"><strong>Email</strong></label>
+                                    <input type="email" id="email" name="email" class="form-control"
+                                        value="<%= user.email %>">
+                                </div>
+                                <!-- Password -->
+                                <div class="form-group">
+                                    <label for="password"><strong>Password</strong></label>
+                                    <input type="password" id="password" name="password" class="form-control"
+                                        value="<%= user.password %>">
+                                </div>
+                                <!-- First Name -->
+                                <div class="form-group">
+                                    <label for="first_name"><strong>First Name</strong></label>
+                                    <input type="text" id="first_name" name="first_name" class="form-control"
+                                        value="<%= user.first_name %>">
+                                </div>
+                                <!-- Last Name -->
+                                <div class="form-group">
+                                    <label for="last_name"><strong>Last Name</strong></label>
+                                    <input type="text" id="last_name" name="last_name" class="form-control"
+                                        value="<%= user.last_name %>">
+                                </div>
+                                <!-- Phone Number -->
+                                <div class="form-group">
+                                    <label for="phoneNumber"><strong>Phone Number</strong></label>
+                                    <input type="text" id="phoneNumber" name="phoneNumber" class="form-control"
+                                        value="<%= user.phoneNumber %>">
+                                </div>
+                                <!-- Address -->
+                                <div class="form-group">
+                                    <label for="address"><strong>Address</strong></label>
+                                    <input type="text" id="address" name="address" class="form-control"
+                                        value="<%= user.address %>">
+                                </div>
+                                <!-- Reading Goal -->
+                                <div class="form-group">
+                                    <label for="reading_goal"><strong>Reading Goal</strong></label>
+                                    <input type="text" id="readingGoal" name="readingGoal" class="form-control"
+                                        value="<%= user.reading_goal %>">
+                                </div>
+                                <!-- Bio -->
+                                <div class="form-group">
+                                    <label for="bio"><strong>Bio</strong></label>
+                                    <input type="text" id="bio" name="bio" class="form-control" value="<%= user.bio %>"
+                                        required>
+                                </div>
+                                <!-- Submit button -->
+                                <button type="submit" class="btn btn-action">Update Settings</button>
+                            </form>
+                        </div>
+
+                        <!-- Profile Picture & Bio Update (Handles picture upload and bio update via Base64) -->
+                        <div class="profile-update-container">
+                            <h2>Update Profile Picture & Bio</h2>
+                            <form id="profilePicForm" action="/api/profiles/updateProfile/<%= user.profile_Id %>"
+                                method="POST">
+                                <!-- Profile Picture -->
+                                <div class="form-group">
+                                    <label for="picture"><strong>Choose Profile Picture</strong></label>
+                                    <input type="file" id="picture" class="form-control" accept="image/*" required>
+                                </div>
+                                <!-- Hidden Bio Field -->
+                                <div class="form-group">
+                                    <input type="hidden" id="bio" name="bio" class="form-control"
+                                        value="<%= user.bio %>" required>
+                                </div>
+                                <!-- Upload Button -->
+                                <button type="button" id="submitPicBtn" class="btn btn-action">Upload Picture &
+                                    Bio</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            // DOM elements for handling file input and submission
+                            const pictureInput = document.getElementById('picture');
+                            const submitPicBtn = document.getElementById('submitPicBtn');
+                            const profilePicForm = document.getElementById('profilePicForm');
+                            let base64Image = ''; // To store the Base64 image string
+
+                            // Convert selected image to Base64 string
+                            pictureInput.addEventListener('change', (event) => {
+                                const file = event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        base64Image = e.target.result.split(',')[1]; // Extract Base64 data
+                                    };
+                                    reader.readAsDataURL(file); // Read file as Base64
+                                }
+                            });
+
+                            // Handle form submission for profile picture and bio
+                            submitPicBtn.addEventListener('click', async () => {
+                                const bio = document.getElementById('bio').value.trim();
+                                if (!base64Image) {
+                                    alert('Please select a profile picture.');
+                                    return;
+                                }
+
+                                const payload = {
+                                    picture: base64Image, // Base64-encoded picture
+                                    bio: bio, // User bio
+                                };
+
+                                // Send payload to the server
+                                try {
+                                    const response = await fetch(profilePicForm.action, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify(payload),
+                                    });
+
+                                    if (response.ok) {
+                                        alert('Profile updated successfully!');
+                                        window.location.href = '/api/users/dashboard'; // Redirect on success
+                                    } else {
+                                        const result = await response.json();
+                                        alert(`Error: ${result.message}`);
+                                    }
+                                } catch (error) {
+                                    console.error('Error updating profile:', error);
+                                    alert('An error occurred. Please try again.');
+                                }
+                            });
+                        });
+                    </script>
+
+</body>
+
+</html>

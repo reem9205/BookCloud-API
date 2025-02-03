@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Reviews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Styling for body and layout */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* Ensures body spans full viewport height */
+            margin: 0;
+            /* Removes default margin */
+            font-family: Arial, sans-serif;
+            /* Sets font style */
+            background: linear-gradient(to bottom right, #8FABB7, #D8DFE5, #FBFBFB);
+            /* Gradient background */
+        }
+
+        /* Styling for main content section */
+        main {
+            flex: 1;
+            /* Fills available vertical space */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: transparent;
+            /* Matches overall theme */
+        }
+
+        /* Scrollable Section for Reviews */
+        .scrollable-card-pane {
+            flex: 1;
+            /* Allows it to stretch vertically within the container */
+            max-height: 60vh;
+            /* Limits height to allow scrolling */
+            overflow-y: auto;
+            /* Enables vertical scrolling */
+            padding: 15px;
+            border: 1px solid #ccc;
+            /* Light border around scrollable section */
+            border-radius: 8px;
+            /* Rounded corners */
+            background-color: transparent;
+            /* Transparent background */
+        }
+
+        /* Container for the cards */
+        .card-container {
+            display: flex;
+            /* Displays cards in a row */
+            flex-wrap: wrap;
+            /* Allows cards to wrap onto new lines */
+            gap: 15px;
+            /* Space between cards */
+        }
+
+        /* Individual card styling */
+        .card {
+            background-color: rgba(216, 223, 229, 0.8);
+            /* Semi-transparent background for cards */
+            border: 5px solid #304f5c !important;
+            /* Darker border */
+            border-radius: 8px;
+            /* Rounded corners */
+            padding: 15px;
+            /* Inner padding for content */
+            width: calc(33.33% - 15px);
+            /* Ensures three cards per row */
+            display: flex;
+            flex-direction: column;
+            /* Aligns content vertically */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow */
+        }
+
+        .card h5 {
+            margin: 0 0 10px;
+            /* Spacing around the card title */
+            font-size: 1.2rem;
+            /* Font size for title */
+        }
+
+        .card p {
+            margin: 5px 0;
+            /* Space between paragraphs */
+            font-size: 0.9rem;
+            /* Smaller font size for text */
+        }
+
+        /* Custom Scrollbar Styling */
+        .scrollable-card-pane::-webkit-scrollbar {
+            width: 8px;
+            /* Width of scrollbar */
+        }
+
+        .scrollable-card-pane::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.3);
+            /* Semi-transparent scrollbar thumb */
+            border-radius: 4px;
+            /* Rounded scrollbar thumb */
+        }
+
+        .scrollable-card-pane::-webkit-scrollbar-track {
+            background-color: transparent;
+            /* Transparent scrollbar track */
+        }
+
+        /* Styling for primary buttons */
+        .btn-primary {
+            background-color: #46656F !important;
+            /* Custom button color */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header Section -->
+    <% try { %>
+        <%- include('partials/header', { user: user }) %>
+            <% } catch (err) { %>
+                <!-- Error message in case header fails to load -->
+                <p>Error loading header: <%= err.message %>
+                </p>
+                <% } %>
+
+                    <!-- Main Content -->
+                    <main>
+                        <!-- Filter Section -->
+                        <div class="filter-section mb-4">
+                            <!-- Form for filtering reviews -->
+                            <form method="GET" action="/api/reviews/reviewView">
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label for="title">Filter by Title:</label>
+                                        <!-- Input for filtering by book title -->
+                                        <input type="text" class="form-control" id="title" name="title"
+                                            placeholder="Enter book title" value="<%= title || '' %>">
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label for="rate">Filter by Rating:</label>
+                                        <!-- Dropdown for filtering by rating -->
+                                        <select class="form-control" id="rate" name="rate">
+                                            <option value="">Select Rating</option>
+                                            <option value="1" <%=rate==='1' ? 'selected' : '' %>>1 Star</option>
+                                            <option value="2" <%=rate==='2' ? 'selected' : '' %>>2 Stars</option>
+                                            <option value="3" <%=rate==='3' ? 'selected' : '' %>>3 Stars</option>
+                                            <option value="4" <%=rate==='4' ? 'selected' : '' %>>4 Stars</option>
+                                            <option value="5" <%=rate==='5' ? 'selected' : '' %>>5 Stars</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>&nbsp;</label>
+                                        <!-- Submit button for filter form -->
+                                        <button type="submit" class="btn btn-primary btn-block">Filter</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Reviews Section -->
+                        <div class="scrollable-card-pane">
+                            <!-- Container for individual review cards -->
+                            <div class="card-container">
+                                <% if (reviews && reviews.length> 0) { %>
+                                    <% reviews.forEach(review=> { %>
+                                        <div class="card">
+                                            <!-- Review Title -->
+                                            <h5>
+                                                <%= review.title || 'Untitled' %>
+                                            </h5>
+                                            <!-- Review Rating -->
+                                            <p><strong>Rating:</strong>
+                                                <%= review.rating || 'N/A' %> / 5
+                                            </p>
+                                            <!-- Review Description -->
+                                            <p><strong>Review:</strong>
+                                                <%= review.des || 'No description available' %>
+                                            </p>
+                                            <!-- Review Date -->
+                                            <p><strong>Date Written:</strong>
+                                                <%= review.createdAt || 'Unknown' %>
+                                            </p>
+                                        </div>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <!-- Message if no reviews are found -->
+                                                <p>No reviews found.</p>
+                                                <% } %>
+                            </div>
+                        </div>
+                    </main>
+
+                    <!-- Footer Section -->
+                    <% try { %>
+                        <%- include('partials/footer', { user: user }) %>
+                            <% } catch (err) { %>
+                                <!-- Error message in case footer fails to load -->
+                                <p>Error loading footer: <%= err.message %>
+                                </p>
+                                <% } %>
+</body>
+
+</html>

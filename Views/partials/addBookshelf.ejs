@@ -1,0 +1,115 @@
+<div class="modal fade" id="addBookshelfModal" tabindex="-1" role="dialog" aria-labelledby="addBookshelfModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBookshelfModalLabel">Create New Bookshelf</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="addBookshelfForm" action="/api/bookshelf/addBookshelf" method="POST">
+                <div class="modal-body">
+                    <!-- Hidden Username Field -->
+                    <input type="hidden" id="username" name="username" value="<%= user.username %>">
+
+                    <!-- Bookshelf Name Field -->
+                    <div class="form-group">
+                        <label for="bookshelf_name">Bookshelf Name</label>
+                        <input type="text" class="form-control" id="bookshelf_name" name="bookshelf_name" required>
+                        <div class="invalid-feedback">Please provide a name for the bookshelf.</div>
+                    </div>
+
+                    <!-- View Field -->
+                    <div class="form-group">
+                        <label for="view">Visibility</label>
+                        <select class="form-control" id="view" name="view" required>
+                            <option value="" disabled selected>Select visibility</option>
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a visibility option.</div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for Modal -->
+<style>
+    /* General Modal Styles */
+    #addBookshelfModal .modal-content {
+        background-color: #f8f9fa;
+        /* Light background for contrast */
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        /* Subtle shadow effect */
+    }
+
+    /* Modal Header Styling */
+    #addBookshelfModal .modal-header {
+        background-color: #8FABB7;
+        /* Matches previous header theme */
+        color: white;
+        /* White text for contrast */
+    }
+
+    /* Modal Footer Styling */
+    #addBookshelfModal .modal-footer {
+        border-top: 2px solid #D8DFE5;
+        /* Soft border for separation */
+    }
+
+    /* Label Styling */
+    #addBookshelfModal .form-group label {
+        font-weight: bold;
+        /* Emphasized labels */
+    }
+
+    /* Input Focus Effect */
+    #addBookshelfModal .form-control:focus {
+        border-color: #8FABB7;
+        /* Themed focus border */
+        box-shadow: 0 0 5px rgba(143, 171, 183, 0.5);
+        /* Subtle glow effect */
+    }
+
+    /* Primary Button Styling */
+    #addBookshelfModal .btn-primary {
+        background-color: #8FABB7;
+        /* Theme matching button color */
+        border: none;
+        /* Clean border */
+    }
+
+    #addBookshelfModal .btn-primary:hover {
+        background-color: #5E778B;
+        /* Darker shade for hover effect */
+    }
+
+    /* Secondary Button Styling */
+    #addBookshelfModal .btn-secondary {
+        background-color: #D8DFE5;
+        /* Complementary light gray */
+        border: none;
+        color: #333;
+        /* Dark text for readability */
+    }
+
+    #addBookshelfModal .btn-secondary:hover {
+        background-color: #BFC7CF;
+        /* Slightly darker gray for hover */
+        color: black;
+        /* Enhanced contrast */
+    }
+</style>

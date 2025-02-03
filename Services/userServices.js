@@ -3,6 +3,7 @@ const { initDB } = require('../Config/database');
 const User = require('../Models/userModel');
 const Profile = require('../Models/profileModel');
 const profileServices = require('./profileServices');
+const bookByUserServices = require('./bookByUserServices');
 
 class userService {
     constructor() {
@@ -41,15 +42,33 @@ class userService {
      */
     async getAllUsersWithProfile() {
         try {
-            const [rows] = await this.pool.query(`SELECT * FROM user JOIN profile ON user.profile_Id = profile.profile_Id`);
-            return rows.map(row => ({
-                ...User.fromRow(row), profile: Profile.fromRow(row) // Map each row to a User instance with profile data
-            }));
+            const [rows] = await this.pool.query(`
+                SELECT user.user_Id, user.username, profile.profile_Id, profile.bio, profile.picture
+                FROM user
+                JOIN profile ON user.profile_Id = profile.profile_Id
+            `);
+
+
+            return rows.map(row => {
+                const picture = row.picture
+                    ? `data:image/jpeg;base64,${Buffer.from(row.picture).toString('base64')}`
+                    : null;
+
+                return {
+                    user_Id: row.user_Id,
+                    username: row.username,
+                    profile: {
+                        profile_Id: row.profile_Id,
+                        bio: row.bio,
+                        picture: picture
+                    }
+                };
+            });
         } catch (e) {
-            // Rethrow error with additional context
             throw new Error(`Error fetching users with their profiles: ${e.message}`);
         }
     }
+
 
     /**
      * Fetches a user by their ID.
@@ -75,11 +94,35 @@ class userService {
      */
     async getUserByUsername(username) {
         try {
-            const [rows] = await this.pool.query(`SELECT * FROM user WHERE username = ?`, [username]);
-            if (rows.length === 0) return null; // Return null if user is not found
-            return User.fromRow(rows[0]); // Convert the row to a User instance
+            const [rows] = await this.pool.query(
+                `
+                SELECT user.user_Id, user.username, profile.profile_Id, profile.bio, profile.picture
+                FROM user
+                JOIN profile ON user.profile_Id = profile.profile_Id
+                WHERE user.username = ?
+                `, [username]
+            );
+
+            if (rows.length === 0) {
+                throw new Error(`User with username '${username}' not found`);
+            }
+
+            const row = rows[0];
+            const picture = row.picture
+                ? `data:image/jpeg;base64,${Buffer.from(row.picture).toString('base64')}`
+                : null;
+
+            return {
+                user_Id: row.user_Id,
+                username: row.username,
+                profile: {
+                    profile_Id: row.profile_Id,
+                    bio: row.bio,
+                    picture: picture
+                }
+            };
         } catch (e) {
-            throw new Error(`Error fetching user by username: ${e.message}`); // Rethrow error with additional context
+            throw new Error(`Error fetching user by username: ${e.message}`);
         }
     }
 
@@ -92,7 +135,8 @@ class userService {
      */
     async createUser(userData) {
         try {
-            const { FName, LName, username, email, password, phoneNumber, address, bio, reading_goal } = userData;
+            const { firstName, lastName, username, email, password, bio } = userData;
+
 
             // Check if username already exists
             const [check] = await this.pool.query(`SELECT username FROM user WHERE username = ?`, [username]);
@@ -107,9 +151,9 @@ class userService {
             // Insert user data with profileId as a foreign key
             const [result] = await this.pool.query(
                 `INSERT INTO user (first_name, last_name, username, email, 
-                password, phoneNumber, address, profile_Id, reading_goal)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [FName, LName, username, email, password, phoneNumber, address, profileId, reading_goal]
+                password, profile_Id)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [firstName, lastName, username, email, password, profileId,]
             );
 
             // Retrieve and return the new user with profile data
@@ -130,46 +174,95 @@ class userService {
      */
     async updateUser(id, userData) {
         try {
-            const { FName, LName, username, email, password, phoneNumber, address, bio, reading_goal } = userData;
+            // Fetch existing user data
+            const existingUser = await this.getUserById(id);
 
-            const [check] = await this.pool.query(`SELECT username FROM user WHERE username = ?`,
-                [username]
-            );
-
-            if (check.lenght > 0) {
-                return 'username already exists';
+            if (!existingUser) {
+                throw new Error(`User with ID ${id} not found`);
             }
-            // Update user data
-            const [userResult] = await this.pool.query(
-                `UPDATE user 
-                 SET first_name = ?, last_name = ?, username = ?, email = ?, password = ?,
-                  phoneNumber = ?, address = ?, reading_goal = ?
-                 WHERE user_Id = ?`,
-                [FName, LName, username, email, password, phoneNumber, address, reading_goal, id]
+
+            // Merge existing data with new data
+            const updatedData = {
+                first_name: userData.first_name || existingUser.FName,
+                last_name: userData.last_name || existingUser.LName,
+                username: userData.username || existingUser.username,
+                email: userData.email || existingUser.email,
+                password: userData.password || existingUser.password,
+                phoneNumber: userData.phoneNumber || existingUser.phoneNumber,
+                address: userData.address || existingUser.address,
+                bio: userData.bio || existingUser.bio, // Ensure bio is included
+                readingGoal: userData.readingGoal || existingUser.reading_goal,
+                picture: userData.picture || existingUser.picture
+            };
+
+            // Update user table
+            const [userResult] = await this.pool.query(`
+                UPDATE user 
+                SET first_name = ?, last_name = ?, username = ?, email = ?, password = ?,
+                    phoneNumber = ?, address = ?, reading_goal = ?
+                WHERE user_Id = ?`,
+                [
+                    updatedData.first_name,
+                    updatedData.last_name,
+                    updatedData.username,
+                    updatedData.email,
+                    updatedData.password,
+                    updatedData.phoneNumber,
+                    updatedData.address,
+                    updatedData.readingGoal,
+                    id
+                ]
             );
 
             if (userResult.affectedRows === 0) {
-                return (`User with ID ${id} not found or no changes made`); // Throw error if update fails
+                throw new Error(`User with ID ${id} not found or no changes made`);
             }
 
-            // Get the user's profile ID to update the profile
-            const user = await this.getUserById(id);
-            const profileId = user.profile_Id;
+            // Update profile table if bio or picture is provided
+            if (updatedData.bio || updatedData.picture) {
+                const profileId = existingUser.profile_Id;
+                const profileUpdated = await profileServices.updateProfile(profileId, {
+                    bio: updatedData.bio,
+                    picture: updatedData.picture
+                });
 
-            //  Update profile data using profileServices
-            const profileUpdated = await profileServices.updateProfile(profileId, { bio });
-
-            if (!profileUpdated) {
-                return (`Failed to update profile for user with ID ${id}`); // Throw error if profile update fails
+                if (!profileUpdated) {
+                    throw new Error(`Failed to update profile for user with ID ${id}`);
+                }
             }
 
-            //  Retrieve and return the updated user with profile data
-            return await this.getUserById(id);
+            // Fetch the updated user data after the update
+            const updatedUser = await this.getUserById(id);
 
-        } catch (e) {
-            throw new Error(`Error updating user: ${e.message}`); // Rethrow error with additional context
+            let base64Picture = null;
+            if (updatedUser.picture) {
+                base64Picture = `data:image/png;base64,${Buffer.from(updatedUser.picture).toString('base64')}`;
+            }
+
+
+            return {
+                success: true,
+                user: {
+                    user_Id: updatedUser.user_Id,
+                    username: updatedUser.username,
+                    email: updatedUser.email,
+                    profile_Id: updatedUser.profile_Id,
+                    bio: userData.bio,
+                    picture: base64Picture, // Base64-encoded picture or null
+                    first_name: userData.first_name,
+                    last_name: userData.last_name,
+                    phoneNumber: updatedUser.phoneNumber,
+                    address: updatedUser.address,
+                    reading_goal: updatedUser.reading_goal,
+                    password: updatedUser.password // Consider omitting this in production for security reasons
+                }
+            };
+
+        } catch (error) {
+            throw new Error(`Error updating user: ${error.message}`);
         }
     }
+
 
     /**
      * Deletes a user by their ID.
@@ -204,22 +297,91 @@ class userService {
     async signIn(signIn) {
         try {
             const { username, password } = signIn;
-            const [rows] = await this.pool.query(`SELECT password FROM user WHERE username = ?`, [username]);
 
-            // Check if the username was found
+
+
+            // Query the database for the user and profile
+            const [rows] = await this.pool.query(`
+                SELECT user.*, profile.bio, profile.picture 
+                FROM user 
+                JOIN profile ON profile.profile_Id = user.profile_Id 
+                WHERE username = ?
+            `, [username]);
+
+
+            // Check if the username exists
             if (rows.length === 0) {
-                return false; // Username not found, return false
+
+                return { success: false, message: 'Invalid username' }; // Return error for missing user
             }
 
-            const correctPass = rows[0].password;
+            const user = rows[0]; // Get the user object
+            const correctPass = user.password; // Extract the stored password
 
             // Check if the password matches
-            return correctPass === password; // Return true if the password matches, otherwise false
+            if (password === correctPass) {
 
+                // Convert the picture (if exists) to Base64
+                let base64Picture = null;
+                if (user.picture) {
+                    base64Picture = `data:image/png;base64,${Buffer.from(user.picture).toString('base64')}`;
+                }
+
+
+
+                // Construct the response object
+                const userWithProfile = {
+                    user_Id: user.user_Id,
+                    username: user.username,
+                    email: user.email,
+                    profile_Id: user.profile_Id,
+                    bio: user.bio,
+                    picture: base64Picture, // Base64-encoded picture or null
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    phoneNumber: user.phoneNumber,
+                    address: user.address,
+                    reading_goal: user.reading_goal,
+                    password: user.password // Consider omitting this in production for security reasons
+                };
+
+
+                return { success: true, user: userWithProfile }; // Return the user object on success
+            }
+
+
+            return { success: false, message: 'Incorrect password' }; // Return error for password mismatch
         } catch (e) {
-            throw new Error(`Error validating username and password: ${e.message}`); // Rethrow error with additional context
+
+            throw new Error(`Error validating username and password: ${e.message}`);
         }
     }
+
+    /**
+     * gets the information needed for most views
+     * @param {Object}
+     * @returns {Promise<boolean|string>} - return informaion
+     *
+     * @throws {Error} - Throws an error if there is an issue with the database query.
+     */
+    async getBasicInfoForallViews(user_Id) {
+        try {
+
+            const nbOfBooks = await bookByUserServices.getTotalBooks(user_Id);
+            const booksRead = await bookByUserServices.getTotalBooksRead(user_Id);
+
+
+            const data = { nbOfBooks, booksRead };
+
+            return data;
+        } catch (e) {
+            console.error('Error fetching total books:', e);
+            throw new Error(`Error geting information: ${e.message}`);
+        }
+
+
+    }
+
 
 }
 

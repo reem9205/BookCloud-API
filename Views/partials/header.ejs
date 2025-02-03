@@ -1,0 +1,205 @@
+<!-- Navbar Partial -->
+
+<!-- Main Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <!-- Toggler Button for Small Screens -->
+    <!-- Allows the navigation bar to collapse and expand in smaller screen sizes -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Content -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Navigation Links and User Options -->
+        <ul class="navbar-nav align-items-center">
+
+            <!-- Settings Icon -->
+            <!-- This section includes a settings icon linked to a settings partial -->
+            <li class="nav-item">
+                <img src="/settings-32.png" alt="Settings" id="settingsIcon" class="img-person-icon">
+                <!-- Including the 'settings' partial -->
+                <%- include('settings') %>
+            </li>
+
+            <!-- Navigation Link: Home -->
+            <!-- Redirects to the user's dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/users/dashboard">Home</a>
+            </li>
+
+            <!-- Navigation Link: Current Book -->
+            <!-- Redirects to the currently reading book section -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/bookByUser/currentBookView">Current Book</a>
+            </li>
+
+            <!-- Navigation Link: Reviews -->
+            <!-- Allows users to view and manage their book reviews -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/reviews/reviewView">Reviews</a>
+            </li>
+
+            <!-- Navigation Link: Search -->
+            <!-- Provides a search feature for finding books -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/books/searchView">Search</a>
+            </li>
+
+            <!-- Navigation Link: My Collection -->
+            <!-- Shows the user's personal book collection -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/bookByUser/myCollectionView">My Collection</a>
+            </li>
+
+            <!-- Navigation Link: All Books -->
+            <!-- Displays all available books in the system -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/books/allBooksView">Books</a>
+            </li>
+
+            <!-- Navigation Link: Discover People -->
+            <!-- Allows users to find and connect with other users -->
+            <li class="nav-item">
+                <a class="nav-link" href="/api/users/allUsersView">Discover People</a>
+            </li>
+
+            <!-- Dropdown: Recommendations -->
+            <!-- Provides personalized book recommendations by Author or Genre -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdownMenu2" role="button" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    Recommendations
+                </a>
+                <!-- Dropdown Menu Options -->
+                <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                    <!-- Recommendation by Author -->
+                    <a class="dropdown-item"
+                        href="/api/bookByUser/authorRecommendationView?user_Id=<%= user.user_Id %>">By Author</a>
+                    <!-- Recommendation by Genre -->
+                    <a class="dropdown-item"
+                        href="/api/bookByUser/genreRecommendationView?user_Id=<%= user.user_Id %>">By Genre</a>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Create Bookshelf Button -->
+        <!-- A button that triggers a modal to create a new bookshelf -->
+        <button type="button" class="create-button ml-auto" data-toggle="modal" data-target="#addBookshelfModal">
+            Create Bookshelf
+        </button>
+    </div>
+</nav>
+
+<!-- Include Modal for Adding a Bookshelf -->
+<%- include('addBookshelf') %>
+
+    <!-- JavaScript for Dropdown Functionality -->
+    <script>
+        // Handle dropdown toggle functionality
+        // Ensures that only one dropdown menu is visible at a time
+        $(document).on('click', '.dropdown-toggle', function () {
+            var $el = $(this).next('.dropdown-menu'); // Find the associated dropdown menu
+            var isVisible = $el.hasClass('show'); // Check if the dropdown is currently visible
+            $('.dropdown-menu').removeClass('show'); // Hide all dropdown menus
+            if (!isVisible) {
+                $el.addClass('show'); // Show the clicked dropdown menu
+            }
+        });
+
+        // Close dropdown menu when clicking outside
+        $(document).click(function (e) {
+            if (!$(e.target).closest('.dropdown').length) {
+                $('.dropdown-menu').removeClass('show'); // Hide dropdowns when clicking outside
+            }
+        });
+    </script>
+
+    <!-- Inline CSS Styles for Navbar and Dropdown -->
+    <style>
+        /* Navbar Styling */
+        .navbar {
+            background-color: #46656F !important;
+            /* Navbar background color */
+            border-radius: 10px;
+            /* Rounded corners */
+            margin: 10px 10px 5px 10px;
+            /* Outer spacing */
+        }
+
+        .navbar img {
+            width: 50px;
+            /* Icon width */
+            height: 50px;
+            /* Icon height */
+            border-radius: 50%;
+            /* Make the icon circular */
+            cursor: pointer;
+            /* Pointer cursor on hover */
+        }
+
+        .navbar .nav-link {
+            color: white !important;
+            /* Link text color */
+            margin-left: 15px;
+            /* Spacing between links */
+            font-size: 1.2rem;
+            /* Link font size */
+        }
+
+        .navbar .nav-link:hover {
+            color: #D8DFE5 !important;
+            /* Hover color */
+        }
+
+        /* Dropdown Menu Styling */
+        .dropdown-menu {
+            background-color: #46656F !important;
+            /* Background color */
+            border: none;
+            /* Remove border */
+            font-size: 1.1rem;
+            /* Font size for menu items */
+        }
+
+        .dropdown-item {
+            color: white !important;
+            /* Text color */
+            font-style: italic;
+            /* Italicized text */
+            padding: 10px 20px;
+            /* Inner padding for items */
+        }
+
+        .dropdown-item:hover {
+            background-color: #D8DFE5 !important;
+            /* Hover background color */
+        }
+
+        /* Create Bookshelf Button Styling */
+        .create-button {
+            font-size: 1em;
+            /* Font size */
+            background-color: #8FABB7;
+            /* Green background */
+            color: white;
+            /* White text */
+            border: none;
+            /* Remove border */
+            border-radius: 5px;
+            /* Rounded corners */
+            padding: 10px 20px;
+            /* Inner padding */
+            cursor: pointer;
+            /* Pointer cursor on hover */
+            text-decoration: none;
+            /* Remove underline */
+            transition: background-color 0.3s ease;
+            /* Smooth hover transition */
+        }
+
+        .create-button:hover {
+            background-color: #b6c0c4;
+            /* Darker green on hover */
+        }
+    </style>

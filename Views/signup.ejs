@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up Form</title>
+    <!-- Bootstrap 4 CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Style for the entire body, centered content with gradient background */
+        body {
+            background: linear-gradient(to bottom right, #8FABB7, #FBFBFB);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Styling for the card container */
+        .card {
+            border-radius: 15px;
+            /* Rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            /* Subtle shadow */
+            padding: 20px;
+            /* Inner padding */
+            width: 100%;
+            max-width: 500px;
+            /* Maximum width */
+        }
+
+        /* Primary button styling */
+        .btn-primary {
+            background-color: #46656F;
+            /* Custom button color */
+            border: none;
+            /* Remove border */
+        }
+
+        /* Primary button hover effect */
+        .btn-primary:hover {
+            background-color: #324B53;
+            /* Darker shade on hover */
+        }
+
+        /* Styling for labels in the form */
+        .form-label {
+            font-weight: bold;
+            /* Bold labels */
+        }
+
+        /* Center text alignment for elements */
+        .text-center {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Styling for the popup error message */
+        .popup {
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            /* Center vertically */
+            left: 50%;
+            /* Center horizontally */
+            transform: translate(-50%, -50%);
+            /* Adjust to center */
+            background-color: #f8d7da;
+            /* Light red background for error */
+            padding: 20px;
+            /* Padding inside popup */
+            border: 1px solid #f5c2c7;
+            /* Border matching background */
+            color: #842029;
+            /* Red text for error */
+            font-family: Arial, sans-serif;
+            /* Simple font */
+            border-radius: 5px;
+            /* Rounded corners */
+            z-index: 1000;
+            /* Ensure it's on top */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow */
+        }
+
+        /* Styling for when popup is visible */
+        .popup.show {
+            display: block;
+            /* Make popup visible */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Card container for the sign-up form -->
+    <div class="card">
+        <h1 class="text-center mb-4">Sign Up</h1> <!-- Form title -->
+
+        <!-- Sign-up form, sends data to the backend -->
+        <form action="/api/users/signup" method="POST">
+            <!-- Username field -->
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username"
+                    required>
+            </div>
+
+            <!-- First name field -->
+            <div class="form-group">
+                <label for="firstName" class="form-label">First Name</label>
+                <input type="text" id="firstName" name="firstName" class="form-control"
+                    placeholder="Enter your first name" required>
+            </div>
+
+            <!-- Last name field -->
+            <div class="form-group">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input type="text" id="lastName" name="lastName" class="form-control" placeholder="Enter your last name"
+                    required>
+            </div>
+
+            <!-- Email field -->
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email address"
+                    required>
+            </div>
+
+            <!-- Password field -->
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control"
+                    placeholder="Enter your password" required>
+            </div>
+
+            <!-- Submit button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg">Register</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Include Bootstrap JavaScript for interactivity -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+        </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGaewFy3AoDVmOY6xB8bSTdkn1" crossorigin="anonymous">
+        </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous">
+        </script>
+
+    <!-- Dynamic error popup -->
+    <% if (error) { %>
+        <div class="popup show" id="errorPopup">
+            <p>
+                <%= error %> <!-- Display error message dynamically -->
+            </p>
+        </div>
+        <% } %>
+
+            <script>
+                // JavaScript to close the error popup after 3 seconds
+                setTimeout(() => {
+                    const popup = document.getElementById('errorPopup');
+                    if (popup) {
+                        popup.classList.remove('show'); // Hide popup
+                    }
+                }, 3000); // 3 seconds delay
+            </script>
+</body>
+
+</html>

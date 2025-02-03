@@ -26,13 +26,25 @@ class reviewService {
      */
     async getAllReviews() {
         try {
-            const [rows] = await this.pool.query(`SELECT title, review.* 
-                FROM review JOIN book ON review.book_Id = book.book_Id`);
-            return rows.map(Review.fromRow); // Map each row to a Review instance
+            const [rows] = await this.pool.query(`
+                SELECT book.title AS book_title, review.* 
+                FROM review 
+                JOIN book ON review.book_Id = book.book_Id
+            `);
+            return rows.map(row => ({
+                title: row.book_title, // Ensure title maps correctly
+                reviewId: row.review_Id,
+                bookId: row.book_Id,
+                des: row.review_des,
+                rating: row.rating,
+                userId: row.user_Id,
+                createdAt: row.review_date,
+            }));
         } catch (e) {
-            throw new Error(`Error fetching reviews: ${e.message}`); // Rethrow error with additional context
+            throw new Error(`Error fetching reviews: ${e.message}`);
         }
     }
+
 
     /**
      * Fetches a review by its ID, including the book title.
@@ -41,18 +53,30 @@ class reviewService {
      * @returns {Promise<Review|null>} - Returns a Review instance or null if not found.
      * @throws {Error} - Throws an error if there is an issue with the database query.
      */
-    async getReviewById(id) {
+    async getReviewByTitle(title) {
         try {
-            const [rows] = await this.pool.query(`SELECT title, review.* 
-                FROM review 
-                JOIN book ON review.book_Id = book.book_Id
-                 WHERE review_Id = ?`, [id]);
-            if (rows.length === 0) return null; // Return null if review is not found
-            return Review.fromRow(rows[0]); // Convert the row to a Review instance
-        } catch (e) {
-            throw new Error(`Error fetching review by ID: ${e.message}`); // Rethrow error with additional context
+            const [rows] = await this.pool.query(
+                ` SELECT book.title AS book_title, review.* 
+                 FROM review 
+                 JOIN book ON review.book_Id = book.book_Id 
+                 WHERE book.title LIKE ?`,
+                [`%${title}%`] // Add wildcards for flexible matching
+            );
+
+            return rows.map(row => ({
+                title: row.book_title,
+                reviewId: row.review_Id,
+                bookId: row.book_Id,
+                des: row.review_des,
+                rating: row.rating,
+                userId: row.user_Id,
+                createdAt: row.review_date,
+            }));
+        } catch (error) {
+            throw new Error(`Error fetching reviews by title: ${error.message}`);
         }
     }
+
 
     /**
      * Fetches reviews by the book title.
@@ -61,36 +85,32 @@ class reviewService {
      * @returns {Promise<Review|null>} - Returns a Review instance or null if not found.
      * @throws {Error} - Throws an error if there is an issue with the database query.
      */
-    async getReviewByTitle(title) {
+    async getReviewByRate(rate) {
         try {
-            const [rows] = await this.pool.query(`SELECT title, review.* 
-                FROM review 
-                JOIN book 
-                ON review.book_Id = book.book_Id WHERE title = ?`, [title]);
-            if (rows.length === 0) return null; // Return null if no reviews are found for the title
-            return Review.fromRow(rows[0]); // Convert the row to a Review instance
-        } catch (e) {
-            throw new Error(`Error fetching reviews by title: ${e.message}`); // Rethrow error with additional context
+            const [rows] = await this.pool.query(
+                `SELECT *
+                 FROM review 
+                 JOIN book ON review.book_Id = book.book_Id 
+                 WHERE review.rating = ?`,
+                [rate]
+            );
+
+            return rows.map(row => ({
+                title: row.book_title,
+                reviewId: row.review_Id,
+                bookId: row.book_Id,
+                des: row.review_des,
+                rating: row.rating,
+                userId: row.user_Id,
+                createdAt: row.review_date,
+            }));
+        } catch (error) {
+            throw new Error(`Error fetching reviews by rating: ${error.message}`);
         }
     }
 
-    /**
-     * Fetches reviews by rating.
-     * Joins the review and book tables based on book ID.
-     * @param {number} rate - The rating of the review.
-     * @returns {Promise<Review|null>} - Returns a Review instance or null if not found.
-     * @throws {Error} - Throws an error if there is an issue with the database query.
-     */
-    async getReviewByRate(rate) {
-        try {
-            const [rows] = await this.pool.query(`SELECT title, review.* 
-                FROM review JOIN book ON review.book_Id = book.book_Id WHERE rating = ?`, [rate]);
-            if (rows.length === 0) return null; // Return null if no reviews are found for the rating
-            return Review.fromRow(rows[0]); // Convert the row to a Review instance
-        } catch (e) {
-            throw new Error(`Error fetching reviews by rating: ${e.message}`); // Rethrow error with additional context
-        }
-    }
+
+
 
     /**
      * Creates a new review for a specified book.
@@ -101,8 +121,7 @@ class reviewService {
      */
     async createReview(reviewData) {
         try {
-            const { title, rating, review_des } = reviewData; // Destructure the review data
-
+            const { title, rating, review_des } = reviewData;
 
             // Fetch the book by title to get the book ID
             const book = await bookService.getBookByTitle(title);
@@ -111,12 +130,15 @@ class reviewService {
             }
 
             const bookId = book.id;
-            const currentDateISO = new Date().toISOString();
+
+            // Format the current date to 'YYYY-MM-DD HH:MM:SS'
+            const currentDate = new Date();
+            const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 
             // Insert review into the database
             const [result] = await this.pool.query(
                 `INSERT INTO review (book_Id, rating, review_date, review_des) VALUES (?, ?, ?, ?)`,
-                [bookId, rating, currentDateISO, review_des]
+                [bookId, rating, formattedDate, review_des]
             );
 
             if (!result.insertId) {
@@ -124,12 +146,13 @@ class reviewService {
             }
 
             // Retrieve and return the new review
-            return await this.getReviewById(result.insertId);
+            return true;
 
         } catch (e) {
             throw new Error(`Error creating review: ${e.message}`); // Rethrow error with additional context
         }
     }
+
 
     /**
      * Updates an existing review by its ID.

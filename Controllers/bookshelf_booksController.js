@@ -58,7 +58,7 @@ class BookshelfBooksController {
 
             // Call the service to create the bookshelf-book association
             const newAssociation = await bookshelfBooksServices.createBookshelfBooks({ book_id, bookshelf_id });
-            res.status(201).json(newAssociation); // Return the newly created association
+            res.redirect(`/api/bookshelf/editBookshelfView/${bookshelf_id}`);
         } catch (e) {
             console.error('Error creating bookshelf-book association:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
@@ -109,7 +109,8 @@ class BookshelfBooksController {
                 return res.status(404).json({ message: 'Bookshelf-book association not found' }); // Return 404 if association is not found
             }
 
-            res.json({ message: 'Bookshelf-book association deleted successfully' }); // Confirm successful deletion
+            res.redirect(`/api/bookshelf/editBookshelfView/${bookshelf_id}`);
+
         } catch (e) {
             console.error('Error deleting bookshelf-book association:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response

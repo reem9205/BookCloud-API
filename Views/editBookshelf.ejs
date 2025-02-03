@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* General body styling */
+        body {
+            background: linear-gradient(to bottom right, #8FABB7, #D8DFE5, #FBFBFB);
+            background-attachment: fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* Prevent scrolling of the whole page */
+            font-family: 'Itim', cursive, sans-serif !important;
+            /* Font styling */
+        }
+
+        /* Wrapper to center the content vertically and horizontally */
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 95vh;
+        }
+
+        /* Main content container with padding and shadow */
+        .content {
+            width: 90%;
+            height: 80%;
+            overflow-y: auto;
+            /* Enable scrolling within the content */
+            background-color: transparent;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        /* Styling for form sections */
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            /* Light gray border */
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            /* Light background for forms */
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow */
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-section label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        /* Styling for form inputs and dropdowns */
+        .form-section input,
+        .form-section select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Button styling for forms */
+        .form-section button {
+            background-color: #9ab1a2;
+            /* Soft green color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        /* Hover effect for buttons */
+        .form-section button:hover {
+            background-color: #7ca98b;
+            /* Slightly darker green on hover */
+        }
+
+        /* Styling for bookshelf containers */
+        .bookshelf-card {
+            width: 100%;
+            background: url('/wood1.jpg') center/cover;
+            /* Wooden texture background */
+            border: 20px solid transparent;
+            border-image: url('/wood lighr.avif') 30 round;
+            /* Decorative border */
+            border-radius: 15px;
+            margin-bottom: 10px;
+            padding: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow */
+        }
+
+        /* Title styling within bookshelf sections */
+        .bookshelf-title {
+            padding: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            /* Transparent white background */
+            border-radius: 10px;
+            border-radius: 10px;
+            color: #333;
+            /* Dark text */
+            margin-bottom: 20px;
+        }
+
+        .books-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Horizontal scrolling container for books */
+        .scrollable-books-section {
+            display: flex;
+            flex-wrap: nowrap;
+            /* Single-row layout */
+            gap: 10px;
+            /* Space between books */
+            overflow-x: auto;
+            /* Enable horizontal scrolling */
+            padding: 10px 0;
+        }
+
+        .scrollable-books-section::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .scrollable-books-section::-webkit-scrollbar-thumb {
+            background: #8FABB7;
+            border-radius: 4px;
+        }
+
+        .scrollable-books-section::-webkit-scrollbar-track {
+            background: #D8DFE5;
+        }
+
+        /* Styling for book cards */
+        .book-card {
+            text-align: center;
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        /* Styling for book images */
+        .book-card img {
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        /* Remove button styling */
+        .remove-button {
+            font-size: 0.9em;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            text-decoration: none;
+        }
+
+        /* Hover effect for remove button */
+        .remove-button:hover {
+            background-color: #a71d2a;
+        }
+
+        /* Add button styling */
+        .add-button {
+            font-size: 0.9em;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            text-decoration: none;
+        }
+
+        /* Hover effect for add button */
+        .add-button:hover {
+            background-color: #218838;
+        }
+
+        /* Placeholder text styling for empty sections */
+        .placeholder {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            width: 100%;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include header dynamically -->
+    <% try { %>
+        <%- include('partials/header', { user: user, data }) %>
+            <% } catch (err) { %>
+                <p>Error loading header: <%= err.message %>
+                </p>
+                <% } %>
+
+                    <div class="content-wrapper">
+                        <div class="content">
+                            <!-- Top Form Section -->
+                            <div class="form-section">
+                                <form action="/api/bookshelf/update/<%= id %>" method="POST">
+
+                                    <div class="form-section">
+                                        <!-- Update Form -->
+                                        <form action="/api/bookshelf/update/<%= id %>" method="POST">
+                                            <div class="form-group">
+                                                <label for="bookshelfName">Bookshelf Name</label>
+                                                <input type="text" id="bookshelf_name" name="bookshelf_name"
+                                                    value="<%= bookshelf[0].bookshelf_name %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="bookshelfView">Bookshelf View</label>
+                                                <select id="bookshelfView" name="view" required>
+                                                    <option value="public" <%=bookshelf.view==='public' ? 'selected'
+                                                        : '' %>>Public</option>
+                                                    <option value="private" <%=bookshelf.view==='private' ? 'selected'
+                                                        : '' %>>Private</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-block">Update</button>
+                                        </form>
+
+                                        <!-- Delete Form -->
+                                        <form action="/api/bookshelf/delete/<%= id %>" method="GET"
+                                            style="margin-top: 10px;">
+                                            <button type="submit" class="btn btn-danger btn-block">Delete</button>
+                                        </form>
+                                    </div>
+
+
+                                    <!-- Add from Collection Section -->
+                                    <div class="bookshelf-card">
+                                        <div class="bookshelf-title">Add from Collection</div>
+                                        <div class="scrollable-books-section">
+                                            <% if (books.length> 0) { %>
+                                                <% books.forEach(book=> { %>
+                                                    <div class="book-card">
+                                                        <% if (book.image) { %>
+                                                            <img src="data:image/jpeg;base64,<%= book.image %>"
+                                                                alt="<%= book.image %>">
+                                                            <% } else { %>
+                                                                <img src="path/to/default-image.jpg"
+                                                                    alt="Default Image">
+                                                                <% } %>
+                                                                    <form action="/api/bookshelfBooks/addInto"
+                                                                        method="POST">
+                                                                        <input type="hidden" name="book_id"
+                                                                            value="<%= book.book_Id %>">
+                                                                        <input type="hidden" name="bookshelf_id"
+                                                                            value="<%= id %>">
+                                                                        <button type="submit" class="btn-sm">Add
+                                                                        </button>
+                                                                    </form>
+                                                    </div>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <div class="placeholder">No books in the collection.</div>
+                                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Bookshelf Section -->
+                                    <div class="bookshelf-card">
+                                        <div class="bookshelf-title">My Bookshelf</div>
+                                        <div class="books-section">
+                                            <% if (bookshelf.length> 0) { %>
+                                                <% bookshelf.forEach(book=> { %>
+                                                    <div class="book-card">
+                                                        <% if (book.image_front) { %>
+                                                            <img src="data:image/jpeg;base64,<%= book.image_front.toString('base64') %>"
+                                                                alt="Book Image">
+                                                            <% } else { %>
+                                                                <!-- Use a default image if image_front is null or missing -->
+                                                                <img src="path/to/default-image.jpg"
+                                                                    alt="Default Image">
+                                                                <% } %>
+                                                                    <form
+                                                                        action="/api/bookshelfBooks/deleteFrom/<%= book.book_Id %>/<%=id%>"
+                                                                        method="get">
+                                                                        <button type="submit"
+                                                                            class="remove-button">Remove</button>
+                                                                    </form>
+                                                    </div>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <div class="placeholder">No books available.</div>
+                                                            <% } %>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+</body>
+
+</html>

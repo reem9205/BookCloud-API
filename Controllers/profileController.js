@@ -92,23 +92,30 @@ class ProfileController {
     async updateProfile(req, res) {
         try {
             const id = parseInt(req.params.id, 10); // Parse the profile ID from the request parameters
-            const { bio, picture } = req.body; // Destructure profile data from the request body
-            if (!bio) {
+            const { bio, picture } = req.body; // Destructure bio and picture from request body
+
+
+
+            if (!bio || !picture) {
                 return res.status(400).json({ message: 'Bio and Picture are required' });
-                // Return 400 if required fields are missing
             }
+
+            // Call the profile service to update the profile
             const success = await profileServices.updateProfile(id, { bio, picture });
-            // Call the service to update the profile
+
             if (!success) {
                 return res.status(404).json({ message: 'Profile not found or no changes made' });
-                // Return 404 if no update occurs
             }
-            res.json({ message: 'Profile updated successfully' }); // Confirm successful update
+
+            res.json({ message: 'Profile updated successfully' });
         } catch (error) {
-            console.error('Error updating profile:', error); // Log the error
-            res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
+            console.error('Error updating profile:', error);
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
+
+
+
 
     /**
      * Delete a profile by its ID.

@@ -90,7 +90,7 @@ class ProfileService {
             // Execute the insert query
             const [result] = await this.pool.query(
                 `INSERT INTO profile (bio, picture) VALUES (?, ?)`,
-                [bio || '', picture || ''] // Set default values if bio or picture is undefined
+                [bio, picture] // Set default values if bio or picture is undefined
             );
 
             return result.insertId; // Return the new profile ID
@@ -109,24 +109,31 @@ class ProfileService {
      */
     async updateProfile(profileId, profileData) {
         try {
-            const { bio, picture } = profileData; // Destructure profile data
+            const { bio, picture } = profileData;
 
-            // Execute the update query
+            // Convert picture to binary if it's a Base64 string
+            const binaryPicture = picture ? Buffer.from(picture, 'base64') : null;
+
+
             const [result] = await this.pool.query(
-                `UPDATE profile SET bio = ?, picture = ? WHERE profile_Id = ?`,
-                [bio, picture, profileId]
+                `UPDATE profile 
+                 SET bio = COALESCE(?, bio), 
+                     picture = COALESCE(?, picture) 
+                 WHERE profile_Id = ?`,
+                [bio, binaryPicture, profileId]
             );
 
+            // Check if the profile was updated
             if (result.affectedRows === 0) {
                 throw new Error(`Profile with ID ${profileId} not found or no changes made`);
-                // Throw error if no update occurs
             }
-            return true; // Return true if the update was successful
 
-        } catch (e) {
-            throw new Error(`Error updating profile: ${e.message}`); // Rethrow error with additional context
+            return true; // Return success if profile is updated
+        } catch (error) {
+            throw new Error(`Error updating profile: ${error.message}`);
         }
     }
+
 
     /**
      * Deletes a profile by its ID.

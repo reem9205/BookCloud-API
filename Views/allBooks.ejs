@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books</title>
+
+    <!-- Bootstrap CSS for responsive styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        /* General styling for the body */
+        body {
+            background: linear-gradient(to bottom right, #8FABB7, #D8DFE5, #FBFBFB);
+            /* Gradient background for aesthetics */
+            background-attachment: fixed;
+            /* Ensures background stays fixed while scrolling */
+            background-size: cover;
+            /* Ensures the background covers the entire viewport */
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            /* Standard readable font */
+            display: flex;
+            /* Flex layout for easy alignment */
+            flex-direction: column;
+            min-height: 100vh;
+            /* Ensures the body takes up full viewport height */
+        }
+
+        /* Header and Footer styling for consistency */
+        header,
+        footer {
+            flex-shrink: 0;
+            /* Prevents header/footer from shrinking */
+        }
+
+        /* Main content styling */
+        main {
+            flex: 1;
+            /* Main area takes up remaining space */
+            display: flex;
+            justify-content: center;
+            /* Center-align content horizontally */
+            align-items: center;
+            /* Center-align content vertically */
+            padding: 20px;
+        }
+
+        /* Container for scrollable books section */
+        .scrollable-container {
+            width: 1600px;
+            max-width: 1500px;
+            /* Max width to prevent overflow on large screens */
+            height: 70vh;
+            /* Height for scrollable section */
+            overflow-y: auto;
+            /* Enables vertical scrolling */
+            background-color: transparent;
+            /* Transparent background to blend with the page */
+            border-radius: 10px;
+            /* Rounded corners for smooth design */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Subtle shadow for elevation effect */
+            display: flex;
+            /* Flex layout for books */
+            flex-wrap: wrap;
+            /* Allows books to wrap onto the next line */
+            justify-content: start;
+            /* Aligns books to the start */
+            align-items: center;
+            padding-left: 80px;
+            /* Left padding for spacing */
+            padding-right: 80px;
+            /* Right padding for spacing */
+        }
+
+        /* Styling for each individual book item */
+        .book-item {
+            text-align: center;
+            /* Centers text within the book item */
+            background: #fff;
+            /* White background for contrast */
+            border: 1px solid #ddd;
+            /* Subtle border for definition */
+            border-radius: 8px;
+            /* Rounded corners */
+            padding: 10px;
+            /* Padding inside each book item */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Elevation effect */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            /* Smooth hover effects */
+            width: 200px;
+            /* Fixed width for uniformity */
+            margin: 10px;
+            /* Spacing between book items */
+        }
+
+        /* Hover effect for book items */
+        .book-item:hover {
+            transform: translateY(-5px);
+            /* Slight upward movement on hover */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            /* Enhanced shadow effect */
+        }
+
+        /* Styling for book images */
+        .book-item img {
+            width: 100%;
+            /* Ensures the image fits the container */
+            height: 250px;
+            /* Fixed height for uniformity */
+            object-fit: cover;
+            /* Maintains aspect ratio while filling the container */
+            border-radius: 4px;
+            /* Rounded corners for images */
+        }
+
+        /* Button styling */
+        .btn-primary {
+            background-color: #46656F;
+            /* Button color matching theme */
+            border-color: #46656F;
+            /* Border matches button color */
+            color: white;
+            /* White text for contrast */
+            font-weight: bold;
+            /* Bold font for emphasis */
+            padding: 8px 12px;
+            /* Button padding for better clickability */
+            border-radius: 5px;
+            /* Rounded button corners */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            /* Smooth transitions */
+        }
+
+        .btn-primary:hover {
+            background-color: #344955;
+            /* Darker shade for hover state */
+            border-color: #344955;
+            /* Matches hover background */
+            transform: scale(1.05);
+            /* Slight zoom effect on hover */
+        }
+
+        /* Small Button Adjustments */
+        .btn-sm {
+            background-color: #344955;
+            font-size: 0.85rem;
+            /* Slightly smaller font size */
+            padding: 6px 10px;
+            /* Adjusted padding for smaller buttons */
+        }
+
+        /* General reset for all elements */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Ensures padding and borders don't affect element size */
+        }
+    </style>
+</head>
+
+<body>
+    <% try { %>
+        <!-- Include Header Partial -->
+        <%- include('partials/header', { user: user, data }) %>
+            <% } catch (err) { %>
+                <p>Error loading header: <%= err.message %>
+                </p>
+                <% } %>
+
+                    <main>
+                        <div class="scrollable-container">
+                            <% books.forEach((book)=> { %>
+                                <div class="book-item">
+                                    <!-- Link to Book Details -->
+                                    <a href="/api/books/bookDetailsGeneral/<%= book.id %>">
+                                        <% if (book.image) { %>
+                                            <img src="data:image/jpeg;base64,<%= book.image %>" alt="<%= book.title %>">
+                                            <% } else { %>
+                                                <img src="path/to/default-image.jpg" alt="Default Image">
+                                                <% } %>
+                                    </a>
+
+                                    <!-- Add to My Collection Button -->
+                                    <div class="text-center mt-2">
+                                        <form action="/api/bookByUser/add" method="POST">
+                                            <input type="hidden" name="title" value="<%= book.title %>">
+                                            <input type="hidden" name="username" value="<%= user.username %>">
+                                            <button type="submit" class="btn-sm">Add to My
+                                                Collection</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <% }); %>
+                        </div>
+                    </main>
+
+                    <% try { %>
+                        <!-- Include Footer Partial -->
+                        <%- include('partials/footer', { user: user, data }) %>
+                            <% } catch (err) { %>
+                                <p>Error loading footer: <%= err.message %>
+                                </p>
+                                <% } %>
+</body>
+
+</html>

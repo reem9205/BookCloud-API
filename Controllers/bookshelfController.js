@@ -1,5 +1,7 @@
 // Importing the bookshelf service to handle business logic for bookshelf-related operations
 const bookshelfServices = require('../Services/bookshelfServices');
+const bookByUserService = require('../Services/bookByUserServices');
+const userService = require('../Services/userServices');
 
 /**
  * BookshelfController handles requests related to bookshelves.
@@ -126,7 +128,9 @@ class BookshelfController {
             }
 
             const newBookshelf = await bookshelfServices.createBookshelf({ username, view, bookshelf_name }); // Create new bookshelf
-            res.status(201).json(newBookshelf); // Return the newly created bookshelf
+
+            return res.redirect(`/api/bookshelf/editBookshelfView/${newBookshelf.id}`);
+
         } catch (e) {
             console.error('Error creating bookshelf:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
@@ -156,7 +160,7 @@ class BookshelfController {
             if (!success) {
                 return res.status(404).json({ message: 'bookshelf not found or no changes made' }); // Return 404 if no update occurs
             }
-            res.json({ message: 'Bookshelf updated successfully' }); // Confirm successful update
+            res.redirect(`/api/bookshelf/editBookshelfView/${id}`);
         } catch (e) {
             console.error('Error updating bookshelf:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
@@ -176,12 +180,58 @@ class BookshelfController {
             if (!success) {
                 return res.status(404).json({ message: 'bookshelf not found' }); // Return 404 if not found
             }
-            res.json({ message: 'Bookshelf deleted successfully' }); // Confirm successful deletion
+            res.redirect(`/api/users/dashboard`);
         } catch (e) {
             console.error('Error deleting bookshelf:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
         }
     }
+
+    /**
+    * takes to edit view
+    * @param {Object} req - The request object, which contains the bookshelf ID in the URL.
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async bookshelfEdit(req, res) {
+        try {
+            const user_Id = req.session.user?.user_Id;
+
+            // Ensure user is authenticated
+            if (!user_Id) {
+                return res.redirect('/Homepage');
+            }
+
+            // Retrieve bookshelf_Id from req.params 
+            const bookshelf_Id = req.params.bookshelf_Id || req.body.bookshelf_Id || req.query.bookshelf_Id;
+            if (!bookshelf_Id) {
+
+                return res.status(400).render('errorPage', { error: 'Invalid bookshelf ID' });
+            }
+
+
+            // Fetch bookshelf and books associated with it
+            const bookshelf = await bookshelfServices.getBookshelfById(bookshelf_Id);
+            if (!bookshelf) {
+                console.error("Bookshelf not found for ID:", bookshelf_Id);
+                return res.status(404).render('errorPage', { error: 'Bookshelf not found' });
+            }
+
+            // Fetch books for the user
+            const books = await bookByUserService.getbookByUserById(user_Id);
+
+            // Fetch user data
+            const data = await userService.getBasicInfoForallViews(user_Id);
+
+
+            // Render the editBookshelf view with data
+            res.render('editBookshelf', { user: req.session.user, bookshelf, books, data, id: bookshelf_Id });
+        } catch (error) {
+            console.error('Error fetching bookshelf or books:', error);
+            res.status(500).render('errorPage', { error: 'Error loading bookshelf data' });
+        }
+    }
+
 }
 
 // Exporting the controller instance for use in route handling

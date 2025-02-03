@@ -3,6 +3,17 @@ const imageService = require('../Services/imageServices.js');
 
 class ImageController {
 
+
+    async getAllImages(req, res) {
+        try {
+            const images = await imageService.getAllImages(); // Fetch all genres from the service
+            res.json(images); // Return the list of genres as a JSON response
+        } catch (e) {
+            console.error('Error fetching genres:', e); // Log the error
+            res.status(500).json({ message: 'Internal server error' }); // Send a generic error response
+        }
+    }
+
     /**
      * Creates a new image entry.
      * This method expects `image_front` and `image_side` to be uploaded through `req.files`.
@@ -13,19 +24,20 @@ class ImageController {
     async createImage(req, res) {
         try {
             // Retrieve image buffers from the uploaded files
-            const image_front = req.files['image_front']?.[0]?.buffer;
-            const image_side = req.files['image_side']?.[0]?.buffer;
+            const { image_front } = req.body;
+
 
             // Validate that both `image_front` and `image_side` are provided
-            if (!image_front || !image_side) {
+            if (!image_front) {
                 return res.status(400).json({ message: 'Missing information: images are required' });
             }
 
             // Call the imageService to handle the image creation in the database
-            const newImage = await imageService.createImage({ image_front, image_side });
+            const newImage = await imageService.createImage(image);
 
             // Respond with the created image details
             res.status(201).json(newImage);
+            // res.render('')
 
         } catch (e) {
             console.error('Error creating image:', e); // Log any error that occurs

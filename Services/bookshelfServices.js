@@ -47,17 +47,38 @@ class bookshelfServices {
      */
     async getBookshelfById(id) {
         try {
-            const [rows] = await this.pool.query(`SELECT bookshelf_Id, username, bookshelf_name, creation_date, bookshelf.view 
-                FROM bookshelf
-                JOIN user ON 
-                user.user_Id = bookshelf.user_Id
-                WHERE bookshelf_Id = ?`, [id]);
-            if (rows.length === 0) return null; // Return null if not found
-            return rows.map(Bookshelf.fromRow);
+            const query = `
+                SELECT 
+                    bookshelf.bookshelf_Id,
+                    bookshelf.bookshelf_name,
+                    bookshelf.creation_date,
+                    book.book_Id,
+                    book.title,
+                    image.image_front
+                FROM 
+                    bookshelf
+                JOIN 
+                    user ON user.user_Id = bookshelf.user_Id
+                LEFT JOIN 
+                    bookshelf_books ON bookshelf_books.bookshelf_Id = bookshelf.bookshelf_Id
+                LEFT JOIN 
+                    book ON bookshelf_books.book_Id = book.book_Id
+                LEFT JOIN 
+                    image ON image.image_Id = book.image_Id
+                WHERE 
+                     bookshelf.bookshelf_Id = ?;
+            `;
+
+
+            const [rows] = await this.pool.query(query, [id]);
+
+
+            return rows; // Directly return all the rows
         } catch (e) {
-            throw new Error(`Error fetching bookshelf by bookshelf ID: ${e.message}`);
+            throw new Error(`Error fetching bookshelf by username: ${e.message}`);
         }
     }
+
 
     /**
      * Fetches bookshelves for a specific user by username.
@@ -66,17 +87,35 @@ class bookshelfServices {
      */
     async getBookshelfByUsername(username) {
         try {
-            const [rows] = await this.pool.query(`SELECT bookshelf_Id, username, bookshelf_name, creation_date, bookshelf.view 
-                FROM bookshelf
-                JOIN user ON 
-                user.user_Id = bookshelf.user_Id
-                WHERE username = ?`, [username]);
-            if (rows.length === 0) return null;
-            return rows.map(Bookshelf.fromRow);
+            const query = `
+                SELECT 
+                    bookshelf.bookshelf_Id,
+                    bookshelf.bookshelf_name,
+                    bookshelf.creation_date,
+                    book.book_Id,
+                    image.image_front
+                FROM 
+                    bookshelf
+                JOIN 
+                    user ON user.user_Id = bookshelf.user_Id
+                LEFT JOIN 
+                    bookshelf_books ON bookshelf_books.bookshelf_Id = bookshelf.bookshelf_Id
+                LEFT JOIN 
+                    book ON bookshelf_books.book_Id = book.book_Id
+                LEFT JOIN 
+                    image ON image.image_Id = book.image_Id
+                WHERE 
+                    user.username = ?;
+            `;
+
+            const [rows] = await this.pool.query(query, [username]);
+
+            return rows; // Directly return all the rows
         } catch (e) {
             throw new Error(`Error fetching bookshelf by username: ${e.message}`);
         }
     }
+
 
     /**
      * Fetches bookshelves by a specific name.
@@ -102,17 +141,34 @@ class bookshelfServices {
      * @param {string} view - The view type of the bookshelf.
      * @returns {Promise<Bookshelf[] | null>} - Array of bookshelves or null if none found.
      */
-    async getBookshelfByView(view) {
+    async getBookshelfByView(username) {
         try {
-            const [rows] = await this.pool.query(`SELECT bookshelf_Id, username, bookshelf_name, creation_date, bookshelf.view 
-                FROM bookshelf
-                JOIN user ON 
-                user.user_Id = bookshelf.user_Id
-                WHERE view = ?`, [view]);
-            if (rows.length === 0) return null;
-            return rows.map(Bookshelf.fromRow);
+            const query = `
+                SELECT 
+                    bookshelf.bookshelf_Id,
+                    bookshelf.bookshelf_name,
+                    bookshelf.creation_date,
+                    book.book_Id,
+                    image.image_front
+                FROM 
+                    bookshelf
+                JOIN 
+                    user ON user.user_Id = bookshelf.user_Id
+                LEFT JOIN 
+                    bookshelf_books ON bookshelf_books.bookshelf_Id = bookshelf.bookshelf_Id
+                LEFT JOIN 
+                    book ON bookshelf_books.book_Id = book.book_Id
+                LEFT JOIN 
+                    image ON image.image_Id = book.image_Id
+                WHERE 
+                    user.username = ? and bookshelf.view = 'public';
+            `;
+
+            const [rows] = await this.pool.query(query, [username]);
+
+            return rows; // Directly return all the rows
         } catch (e) {
-            throw new Error(`Error fetching bookshelf by view: ${e.message}`);
+            throw new Error(`Error fetching bookshelf by username: ${e.message}`);
         }
     }
 
@@ -125,39 +181,56 @@ class bookshelfServices {
         try {
             const { username, view, bookshelf_name } = bookshelfData;
 
+            // Check if the bookshelf name already exists
+            const [existingBookshelfRows] = await this.pool.query(
+                `SELECT bookshelf_name FROM bookshelf WHERE bookshelf_name = ?`,
+                [bookshelf_name]
+            );
 
-            const [rows] = await this.pool.query(`SELECT bookshelf_name FROM bookshelf
-                 WHERE bookshelf_name = ?`, [bookshelf_name]);
-
-            // Check if the genre was found
-            if (rows.length > 0) {
-                return 'already exsists'; // Username not found, return false
+            if (existingBookshelfRows.length > 0) {
+                return 'already exists'; // Bookshelf with the same name already exists
             }
 
             // Check if the user exists
             const [userRows] = await this.pool.query(
-                `SELECT user_Id FROM user WHERE username = ?`, [username]
+                `SELECT user_Id FROM user WHERE username = ?`,
+                [username]
             );
+
             if (userRows.length === 0) {
-                return (`User with username ${username} not found.`);
+                throw new Error(`User with username ${username} not found.`);
             }
+
             const user_Id = userRows[0].user_Id;
-            const currentDateISO = new Date().toISOString();
+
+            // Validate `view` field (assuming it should be 'Public' or 'Private')
+            if (!['public', 'private'].includes(view)) {
+                throw new Error('Invalid view value. Must be either "Public" or "Private".');
+            }
 
             // Insert the new bookshelf entry
             const [result] = await this.pool.query(
-                `INSERT INTO bookshelf ( user_Id, creation_date, view, bookshelf_name)
+                `INSERT INTO bookshelf (user_Id, creation_date, view, bookshelf_name)
                  VALUES (?, NOW(), ?, ?)`,
-                [user_Id, currentDateISO, view, bookshelf_name]
+                [user_Id, view, bookshelf_name]
             );
 
             // Retrieve and return the new bookshelf entry by its ID
-            const newBookshelf = this.getBookshelfById(result.insertId);
-            return Bookshelf.fromRow(newBookshelf);
+            const [newBookshelf] = await this.pool.query(
+                `SELECT * FROM bookshelf WHERE bookshelf_Id = ?`,
+                [result.insertId]
+            );
+
+            if (newBookshelf.length === 0) {
+                throw new Error('Failed to retrieve the created bookshelf.');
+            }
+
+            return Bookshelf.fromRow(newBookshelf[0]);
         } catch (e) {
             throw new Error(`Error creating bookshelf: ${e.message}`);
         }
     }
+
 
     /**
      * Deletes a bookshelf entry by its ID.

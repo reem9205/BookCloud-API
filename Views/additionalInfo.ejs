@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>moreInformation</title>
+    <!-- Including Bootstrap 4 for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General styling for the body */
+        body {
+            background: linear-gradient(to bottom right, #8FABB7, #FBFBFB);
+            /* Gradient background */
+            display: flex;
+            /* Center card horizontally and vertically */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Full viewport height */
+            margin: 0;
+            /* Remove default margin */
+        }
+
+        /* Styling for the card container */
+        .card {
+            border-radius: 15px;
+            /* Rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            /* Subtle shadow */
+            padding: 20px;
+            /* Inner padding */
+            width: 100%;
+            max-width: 500px;
+            /* Maximum width for responsiveness */
+        }
+
+        /* Styling for the primary button */
+        .btn-primary {
+            background-color: #46656F;
+            /* Custom button color */
+            border: none;
+            /* Remove border */
+        }
+
+        /* Hover effect for primary button */
+        .btn-primary:hover {
+            background-color: #324B53;
+            /* Darker shade on hover */
+        }
+
+        /* Styling for form labels */
+        .form-label {
+            font-weight: bold;
+            /* Bold font for better readability */
+        }
+
+        /* Center align the text */
+        .text-center {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Styling for the profile image preview */
+        #previewImage {
+            width: 150px;
+            /* Circular preview width */
+            height: 150px;
+            /* Circular preview height */
+            border-radius: 50%;
+            /* Make it a circle */
+            object-fit: cover;
+            /* Ensure the image fits without distortion */
+            display: none;
+            /* Hidden until a file is selected */
+            margin-bottom: 20px;
+            /* Space below the image */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            /* Add shadow */
+        }
+
+        /* Center the profile picture input and preview */
+        .form-group.text-center {
+            display: flex;
+            flex-direction: column;
+            /* Stack vertically */
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1 class="text-center mb-4">Sign Up</h1> <!-- Page title -->
+
+        <!-- Profile Picture Upload Section -->
+        <div class="form-group text-center">
+            <!-- Preview area for the profile picture -->
+            <img id="previewImage" alt="Profile Preview">
+            <!-- Input for uploading profile picture -->
+            <label for="picture" class="form-label">Profile Picture</label>
+            <input type="file" id="picture" class="form-control-file" accept="image/*">
+        </div>
+
+        <!-- User information update form -->
+        <form id="updateForm" action="/api/users/info/<%= user_Id %>" method="POST">
+            <!-- Phone Number Input -->
+            <div class="form-group">
+                <label for="phoneNumber" class="form-label">Phone Number</label>
+                <input type="text" id="phoneNumber" name="phoneNumber" class="form-control"
+                    placeholder="Enter your phone number" required>
+            </div>
+
+            <!-- Address Input -->
+            <div class="form-group">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" id="address" name="address" class="form-control" placeholder="Enter your address"
+                    required>
+            </div>
+
+            <!-- Reading Goal Input -->
+            <div class="form-group">
+                <label for="reading_goal" class="form-label">Reading Goal</label>
+                <input type="text" id="reading_goal" name="reading_goal" class="form-control"
+                    placeholder="Enter your reading goal" required>
+            </div>
+
+            <!-- Bio Input -->
+            <div class="form-group">
+                <label for="bio" class="form-label">Bio</label>
+                <input type="text" id="bio" name="bio" class="form-control" placeholder="Enter your Bio" required>
+            </div>
+
+            <!-- Update Button -->
+            <button type="button" id="submitBtn" class="btn btn-primary btn-block">Update</button>
+        </form>
+    </div>
+
+    <!-- JavaScript for client-side functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const pictureInput = document.getElementById('picture'); // File input for profile picture
+            const previewImage = document.getElementById('previewImage'); // Image preview element
+            const submitBtn = document.getElementById('submitBtn'); // Submit button
+            const form = document.getElementById('updateForm'); // Form element
+
+            let base64Image = ''; // Variable to hold the Base64 string of the uploaded image
+
+            // Image Preview Handler
+            pictureInput.addEventListener('change', (event) => {
+                const file = event.target.files[0]; // Get selected file
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImage.src = e.target.result; // Set the image preview source
+                        previewImage.style.display = 'block'; // Show the image preview
+                        base64Image = e.target.result.split(',')[1]; // Extract Base64 data from the result
+                    };
+                    reader.readAsDataURL(file); // Read the file as a Base64 URL
+                }
+            });
+
+            // Form Submission Handler
+            submitBtn.addEventListener('click', async () => {
+                const phoneNumber = document.getElementById('phoneNumber').value.trim(); // Get phone number value
+                const address = document.getElementById('address').value.trim(); // Get address value
+                const readingGoal = document.getElementById('reading_goal').value.trim(); // Get reading goal value
+                const bio = document.getElementById('bio').value.trim(); // Get bio value
+
+                // Check if all fields are filled
+                if (!phoneNumber || !address || !readingGoal || !bio) {
+                    alert('Please fill out all required fields.');
+                    return;
+                }
+
+                // Prepare the payload to send to the server
+                const payload = {
+                    phoneNumber,
+                    address,
+                    readingGoal,
+                    picture: base64Image,
+                    bio,
+                };
+
+                console.log('Payload being sent:', payload); // Debugging log
+
+                // Send the form data to the server
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (response.ok) {
+                        alert('User updated successfully!');
+                        window.location.href = '/Homepage'; // Redirect on success
+                    } else {
+                        const result = await response.json();
+                        alert(`Error: ${result.message}`); // Show error message
+                    }
+                } catch (error) {
+                    console.error('Error updating user:', error);
+                    alert('An error occurred. Please try again.'); // Show generic error message
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

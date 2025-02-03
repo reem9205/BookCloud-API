@@ -3,6 +3,8 @@ const reviewController = require('../Controllers/reviewController');
 const { validateReview, validateReviewId } = require('../Validators/reviewDTO');
 const router = express.Router();
 
+
+router.get('/reviewView', (req, res) => reviewController.reviewView(req, res));
 // Route to get all reviews
 router.get('/', (req, res) => reviewController.getAllReviews(req, res));
 
@@ -16,7 +18,7 @@ router.get('/title/:title', (req, res) => reviewController.getReviewByTitle(req,
 router.get('/rating/:rating', (req, res) => reviewController.getReviewByRate(req, res));
 
 // Route to create a new review
-router.post('/', validateReview, (req, res) => reviewController.createReview(req, res));
+router.post('/createReview', validateReview, (req, res) => reviewController.createReview(req, res));
 
 // Route to update an existing review by ID
 router.put('/:id', [validateReview, validateReviewId], (req, res) => reviewController.updateReview(req, res));

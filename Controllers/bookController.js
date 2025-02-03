@@ -1,5 +1,7 @@
 // Importing the book service to handle the business logic for books
 const bookService = require('../Services/bookServices');
+const userServices = require('../Services/userServices');
+const { dashboardView } = require('./userController');
 
 class BookController {
 
@@ -68,27 +70,35 @@ class BookController {
      */
     async createBook(req, res) {
         try {
-            const { first_name, last_name, title, ISBN, date, language, count, genres, description } = req.body;
+            const { first_name, last_name, title, ISBN, date, language, count, genres, description, image } = req.body;
 
-            // Validate required fields
-            if (!first_name || !last_name || !title || !ISBN || !date || !language || !count || !genres || !description) {
+
+            if (!first_name || !last_name || !title || !ISBN || !date || !language || !count || !genres || !description || !image) {
                 return res.status(400).json({ message: 'Missing required fields' });
             }
 
-            // Call createBook in bookService to handle book creation
             const newBook = await bookService.createBook({
-                first_name, last_name, title,
-                ISBN, date, language, count, genres, description
+                first_name,
+                last_name,
+                title,
+                ISBN,
+                date,
+                language,
+                count: parseInt(count, 10),
+                genres,
+                description,
+                image,
             });
 
-            // Respond with the created book and a 201 status
-            res.status(201).json(newBook);
-
+            res.json({ message: 'Book updated successfully' }); // Confirm successful update
         } catch (e) {
-            console.error('Error creating book:', e); // Log the error
-            res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
+            console.error('Error creating book:', e);
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
+
+
+
 
     /**
      * Update an existing book by its ID.
@@ -159,6 +169,96 @@ class BookController {
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
         }
     }
+
+    /**
+    * renders view
+    * @param {Object} req - The request object, containing the search keyword in the URL.
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async allBooksView(req, res) {
+        try {
+
+            const user_Id = req.session.user?.user_Id;
+            if (!user_Id) {
+                return res.redirect('/Homepage');
+            }
+            //gets needed infotmation
+            const data = await userServices.getBasicInfoForallViews(user_Id);
+            const books = await bookService.getAllBooks();
+            const success = books && books.length > 0;
+
+            res.render('allBooks', { user: req.session.user, books, data, success }); //renders view
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            res.status(500).render('allBooks', { error: 'Error loading recommendations' });
+        }
+    }
+
+    /**
+    * Search for books based on a keyword and renders view
+    * Searches multiple fields including title, author, and genre.
+    * @param {Object} req - The request object, containing the search keyword in the URL.
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async searchView(req, res) {
+        const { keyword } = req.query;
+
+        try {
+            let books = [];
+            const userId = req.session?.user?.user_Id;
+
+            if (!userId) {
+                return res.status(401).send('Unauthorized: User not logged in.');
+            }
+            //gets information
+
+            const data = await userServices.getBasicInfoForallViews(req.session.user.user_Id);
+
+            // Filtering logic
+            if (keyword) {
+                books = await bookService.searchBook(keyword);
+
+            } else {
+                books = await bookService.getAllBooks();
+            }
+
+
+            res.render('search', { user: req.session.user, books, data, keyword }); //render view
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            res.status(500).send('An error occurred while fetching books.');
+        }
+    }
+
+    /**
+    * gets book information and render view
+    * Searches multiple fields including title, author, and genre.
+    * @param {Object} req - The request object, containing the search keyword in the URL.
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async bookDetailsGeneral(req, res) {
+        try {
+
+            const user_Id = req.session.user?.user_Id;
+            if (!user_Id) {
+                return res.redirect('/Homepage');
+            }
+
+            //gets needed information
+            const data = await userServices.getBasicInfoForallViews(user_Id);
+
+            const book = await bookService.getBookById(req.params.book_Id);
+
+            res.render('bookDetailsGeneral', { user: req.session.user, book, data });  //render view
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            res.status(500).render('bookDetailsBook', { error: 'Error loading recommendations' });
+        }
+    }
 }
+
 
 module.exports = new BookController(); // Export an instance of the BookController

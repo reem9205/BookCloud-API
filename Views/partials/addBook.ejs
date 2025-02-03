@@ -1,0 +1,215 @@
+<div class="modal fade" id="addBookModal" tabindex="-1" role="dialog" aria-labelledby="addBookModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBookModalLabel">Add New Book</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Form for Adding a New Book -->
+            <form id="addBookForm" action="/api/books" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Book Title Input -->
+                        <div class="form-group col-md-6">
+                            <label for="bookTitle">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                            <div class="invalid-feedback">Please provide a book title.</div>
+                        </div>
+
+                        <!-- Author's First Name Input -->
+                        <div class="form-group col-md-6">
+                            <label for="authorFirstName">Author's First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            <div class="invalid-feedback">Please provide the author's first name.</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Author's Last Name Input -->
+                        <div class="form-group col-md-6">
+                            <label for="authorLastName">Author's Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            <div class="invalid-feedback">Please provide the author's last name.</div>
+                        </div>
+
+                        <!-- ISBN Input -->
+                        <div class="form-group col-md-6">
+                            <label for="isbn">ISBN</label>
+                            <input type="text" class="form-control" id="ISBN" name="ISBN" required>
+                            <div class="invalid-feedback">Please provide a valid ISBN.</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Book Count Input -->
+                        <div class="form-group col-md-6">
+                            <label for="bookCount">Count</label>
+                            <input type="number" class="form-control" id="Count" name="count" required>
+                            <div class="invalid-feedback">Please specify the book count.</div>
+                        </div>
+
+                        <!-- Language Input -->
+                        <div class="form-group col-md-6">
+                            <label for="bookLanguage">Language</label>
+                            <input type="text" class="form-control" id="language" name="language" required>
+                            <div class="invalid-feedback">Please specify the language.</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Publication Date Input -->
+                        <div class="form-group col-md-6">
+                            <label for="publicationDate">Publication Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                            <div class="invalid-feedback">Please provide the publication date.</div>
+                        </div>
+
+                        <!-- Genres Input -->
+                        <div class="form-group col-md-6">
+                            <label for="genre">Genres</label>
+                            <input type="text" class="form-control" id="genres" name="genres" required>
+                            <div class="invalid-feedback">Please specify the genres.</div>
+                        </div>
+                    </div>
+
+                    <!-- Book Description Input -->
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <!-- Upload Book Image -->
+                    <div class="form-group">
+                        <label for="bookImage">Upload Book Image</label>
+                        <input type="file" class="form-control-file" id="image" name="image" accept="image/*" required>
+                        <div class="invalid-feedback">Please upload an image.</div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer with Action Buttons -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for Modal -->
+<style>
+    /* Modal Content Styling */
+    #addBookModal .modal-content {
+        background-color: #f8f9fa;
+        /* Light gray background for modal */
+        border-radius: 8px;
+        /* Rounded corners */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        /* Shadow effect */
+    }
+
+    /* Modal Header Styling */
+    #addBookModal .modal-header {
+        background-color: #8FABB7;
+        /* Matches the header color */
+        color: white;
+        /* White text */
+    }
+
+    /* Modal Footer Styling */
+    #addBookModal .modal-footer {
+        border-top: 2px solid #ddd;
+        /* Subtle border at the top of the footer */
+    }
+
+    /* Labels in Form */
+    #addBookModal .form-group label {
+        font-weight: bold;
+        /* Emphasizes the labels */
+    }
+
+    /* Focus State for Inputs */
+    #addBookModal .form-control:focus {
+        border-color: #8FABB7;
+        /* Matches the header color */
+        box-shadow: 0 0 5px rgba(143, 171, 183, 0.5);
+        /* Glow effect */
+    }
+
+    /* Submit Button Styling */
+    #addBookModal .btn-primary {
+        background-color: #8FABB7;
+        /* Matches header color */
+        border: none;
+        /* Removes border */
+    }
+
+    #addBookModal .btn-primary:hover {
+        background-color: #6E98A3;
+        /* Slightly darker shade for hover */
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    // JavaScript for handling the form submission
+    document.getElementById('addBookForm').addEventListener('submit', async function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        // Get the image file
+        const imageFile = formData.get('image');
+        if (imageFile && imageFile.type.startsWith('image/')) {
+            const reader = new FileReader();
+
+            // Handle FileReader's load event
+            reader.onload = async function (e) {
+                const base64Image = e.target.result; // Base64 encoded image
+
+                // Prepare payload for API
+                const payload = {
+                    title: formData.get('title'),
+                    first_name: formData.get('first_name'),
+                    last_name: formData.get('last_name'),
+                    ISBN: formData.get('ISBN'),
+                    count: parseInt(formData.get('count'), 10),
+                    language: formData.get('language'),
+                    date: formData.get('date'),
+                    genres: formData.get('genres').split(',').map(genre => genre.trim()),
+                    description: formData.get('description'),
+                    image: base64Image // Add Base64 encoded image
+                };
+
+                try {
+                    const response = await fetch('/api/books', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to add book');
+                    }
+
+                    const data = await response.json();
+                    console.log('Book added successfully:', data);
+
+                    // Reset form and close modal
+                    form.reset();
+                    $('#addBookModal').modal('hide');
+                } catch (error) {
+                    console.error('Error adding book:', error);
+                }
+            };
+
+            // Read the image file as Base64
+            reader.readAsDataURL(imageFile);
+        } else {
+            console.error('Please upload a valid image file');
+        }
+    });
+</script>

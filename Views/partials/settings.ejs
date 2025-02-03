@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Sidebar</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Profile Picture Styling */
+        .profile-picture {
+            width: 100px !important;
+            /* Set the width of the profile picture */
+            height: 100px !important;
+            /* Set the height of the profile picture */
+            object-fit: cover;
+            /* Ensure the image fits nicely within the circle */
+            border-radius: 50%;
+            /* Make the image circular */
+            border: 5px solid #cfd8dc;
+            /* Add a border around the picture */
+            margin: 10px auto;
+            /* Center the picture within the container */
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            position: fixed;
+            /* Fix the sidebar position on the screen */
+            top: 0;
+            right: -400px;
+            /* Initially hide the sidebar off-screen */
+            width: 400px;
+            /* Sidebar width */
+            height: 100%;
+            /* Full height */
+            background-color: #f2f5f7;
+            /* Light gray background */
+            color: #344955;
+            /* Dark text color */
+            transition: right 0.3s ease-in-out;
+            /* Smooth slide-in/out effect */
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+            /* Add shadow for depth */
+            z-index: 1000;
+            /* Ensure it appears above other content */
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+        }
+
+        /* Active Sidebar (Visible State) */
+        .sidebar.active {
+            right: 0;
+            /* Slide the sidebar into view */
+        }
+
+        /* Sidebar Header Styling */
+        .sidebar h5 {
+            padding: 20px;
+            margin: 0;
+            background-color: #344955;
+            /* Dark background for header */
+            color: white;
+            /* White text */
+            text-align: center;
+            /* Center align text */
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+            /* Separator for header */
+        }
+
+        /* Profile Section Styling */
+        .profile-section {
+            text-align: center;
+            /* Center align content */
+            padding: 20px;
+            /* Add padding */
+            background-color: #ffffff;
+            /* White background */
+            color: #344955;
+            /* Dark text */
+        }
+
+        /* Info Section Styling */
+        .info-section {
+            padding: 20px;
+            /* Add padding */
+        }
+
+        /* Grid Layout for User Info */
+        .info-grid {
+            display: grid;
+            /* Use CSS grid for layout */
+            grid-template-columns: 1fr 1fr;
+            /* Two columns */
+            gap: 15px;
+            /* Space between grid items */
+        }
+
+        /* Individual Info Item Styling */
+        .info-item {
+            background-color: #e8eef1;
+            /* Light background for items */
+            color: #344955;
+            /* Dark text */
+            padding: 10px;
+            /* Add padding inside items */
+            border-radius: 8px;
+            /* Rounded corners */
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #cfd8dc;
+            /* Light border for separation */
+        }
+
+        .info-item span {
+            color: #5c6b73;
+            /* Softer color for values */
+            font-weight: normal;
+            /* Normal weight for values */
+            display: block;
+            text-align: left;
+            /* Align text to the left */
+        }
+
+        /* Footer Section Styling */
+        .footer-section {
+            position: absolute;
+            /* Position at the bottom of the sidebar */
+            bottom: 20px;
+            width: 100%;
+            /* Full width */
+            padding: 0 20px;
+            /* Add horizontal padding */
+            display: flex;
+            /* Flexbox for alignment */
+            justify-content: space-between;
+            /* Spread buttons evenly */
+            gap: 10px;
+            /* Space between buttons */
+        }
+
+        /* General Button Styling */
+        .footer-button {
+            flex: 1;
+            /* Buttons take equal width */
+            max-width: calc(33.33% - 10px);
+            /* Limit width to a third of the footer */
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            /* White text */
+            text-decoration: none;
+            /* Remove underline */
+            border-radius: 5px;
+            /* Rounded corners */
+            transition: background-color 0.3s ease;
+            /* Smooth hover effect */
+        }
+
+        .footer-button:hover {
+            opacity: 0.9;
+            /* Slight transparency on hover */
+        }
+
+        /* Specific Button Colors */
+        .add-book-button {
+            background-color: #4caf50;
+            /* Green for logout */
+        }
+
+        .edit-book-button {
+            background-color: #fbc02d;
+            /* Yellow for edit information */
+        }
+
+        .delete-account-button {
+            background-color: #e53935;
+            /* Red for delete account */
+        }
+
+        /* Overlay Styling */
+        .overlay {
+            position: fixed;
+            /* Cover the entire screen */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Transparent black overlay */
+            display: none;
+            /* Hidden by default */
+            z-index: 999;
+            /* Below the sidebar */
+        }
+
+        .overlay.active {
+            display: block;
+            /* Show when active */
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <h5>Settings</h5>
+
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <img src="<%= user.picture %>" alt=" Red Dot" class="profile-picture"> <!-- Profile picture -->
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="info-grid">
+                <div class="info-item">Username: <span>
+                        <%= user.username %>
+                    </span></div>
+                <div class="info-item">First Name: <span>
+                        <%= user.first_name %>
+                    </span></div>
+                <div class="info-item">Last Name: <span>
+                        <%= user.last_name %>
+                    </span></div>
+                <div class="info-item">Email: <span>
+                        <%= user.email %>
+                    </span></div>
+                <div class="info-item">Phone: <span>
+                        <%= user.phoneNumber %>
+                    </span></div>
+                <div class="info-item">Password: <span>
+                        <%= user.password %>
+                    </span></div>
+                <div class="info-item">Reading Goal: <span>
+                        <%= user.reading_goal %>
+                    </span></div>
+                <div class="info-item">Bio: <span>
+                        <%= user.bio %>
+                    </span></div>
+            </div>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer-section">
+            <a href="/api/users/logOut" class="footer-button add-book-button">LogOut</a>
+            <a href="/api/users/editSettingsView" class="footer-button edit-book-button">Edit Information</a>
+            <a href="/api/users/deleteUser/<%= user.user_Id %>" class="footer-button delete-account-button">Delete
+                Account</a>
+
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- JavaScript for Sidebar -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const settingsIcon = document.getElementById('settingsIcon');
+
+        // Toggle Sidebar
+        settingsIcon.addEventListener('click', () => {
+            sidebar.classList.toggle('active'); // Show/hide sidebar
+            overlay.classList.toggle('active'); // Show/hide overlay
+        });
+
+        // Close Sidebar when clicking outside
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active'); // Hide sidebar
+            overlay.classList.remove('active'); // Hide overlay
+        });
+    </script>
+</body>
+
+</html>

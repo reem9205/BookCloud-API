@@ -86,7 +86,7 @@ class genreService {
             // Insert the genre into the database
             const [result] = await this.pool.query('INSERT INTO genre (genre_name) VALUES (?)', [genre_name]);
 
-            console.log(result.insertId);
+
             return await this.getGenreById(result.insertId); // Fetch and return the newly created genre
         } catch (e) {
             throw new Error(`Error creating genre: ${e.message}`); // Rethrow error with additional context

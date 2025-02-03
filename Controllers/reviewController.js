@@ -1,6 +1,6 @@
 // Importing the review service to handle business logic for reviews
 const reviewService = require('../Services/reviewServices');
-
+const userServices = require('../Services/userServices');
 class ReviewController {
 
     /**
@@ -68,7 +68,7 @@ class ReviewController {
      */
     async getReviewByRate(req, res) {
         try {
-            console.log('Incoming rate parameter:', req.params.rating);
+
             const rating = req.params.rating; // Log the incoming parameter
 
 
@@ -111,7 +111,7 @@ class ReviewController {
             const newReview = await reviewService.createReview({ title, rating, review_des });
 
             // Respond with the created review
-            res.status(201).json(newReview);
+            res.redirect(`/api/bookByUser/currentBookView`);
         } catch (e) {
             console.error('Error creating review:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
@@ -170,6 +170,45 @@ class ReviewController {
         } catch (e) {
             console.error('Error deleting review:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
+        }
+    }
+
+    /**
+    * renders review view
+    * @param {Object} req - The request object
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async reviewView(req, res) {
+        const { title, rate } = req.query;
+
+        try {
+            let reviews = [];
+            const userId = req.session?.user?.user_Id;
+
+            if (!userId) {
+                return res.status(401).send('Unauthorized: User not logged in.');
+            }
+
+            //gets needed data
+            const data = await userServices.getBasicInfoForallViews(req.session.user.user_Id);
+
+            // Filtering logic by given data
+            if (title && rate) {
+                const reviewsByTitle = await reviewService.getReviewByTitle(title);
+                reviews = reviewsByTitle.filter(review => review.rating === parseInt(rate));
+            } else if (title) {
+                reviews = await reviewService.getReviewByTitle(title);
+            } else if (rate) {
+                reviews = await reviewService.getReviewByRate(rate);
+            } else {
+                reviews = await reviewService.getAllReviews();
+            }
+
+            res.render('reviews', { user: req.session.user, reviews, title, rate, data }); //render view
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            res.status(500).send('An error occurred while fetching reviews.');
         }
     }
 }

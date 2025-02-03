@@ -67,7 +67,8 @@ class BookshelfBooksService {
         try {
             // Check if the book exists
             const [bookRows] = await this.pool.query(
-                `SELECT book_id FROM book WHERE book_id = ?`, [book_id]
+                `SELECT book_id FROM book WHERE book_id = ?`,
+                [book_id]
             );
             if (bookRows.length === 0) {
                 console.error(`Book with ID ${book_id} not found.`);
@@ -76,11 +77,22 @@ class BookshelfBooksService {
 
             // Check if the bookshelf exists
             const [shelfRows] = await this.pool.query(
-                `SELECT bookshelf_id FROM bookshelf WHERE bookshelf_id = ?`, [bookshelf_id]
+                `SELECT bookshelf_id FROM bookshelf WHERE bookshelf_id = ?`,
+                [bookshelf_id]
             );
             if (shelfRows.length === 0) {
                 console.error(`Bookshelf with ID ${bookshelf_id} not found.`);
                 return 'Bookshelf not found'; // Return error message if the bookshelf is not found
+            }
+
+            // Check if the relationship already exists
+            const [relationRows] = await this.pool.query(
+                `SELECT * FROM bookshelf_books WHERE book_id = ? AND bookshelf_id = ?`,
+                [book_id, bookshelf_id]
+            );
+            if (relationRows.length > 0) {
+                console.log(`Association already exists: Book ID ${book_id} with Bookshelf ID ${bookshelf_id}`);
+                return 'Association already exists'; // Return message if the relationship already exists
             }
 
             // Insert the association in the bookshelf_books table
@@ -96,6 +108,7 @@ class BookshelfBooksService {
             throw new Error(`Error creating book-shelf association: ${e.message}`); // Error handling
         }
     }
+
 
     /**
      * Delete a book-shelf association by book_id and bookshelf_id.

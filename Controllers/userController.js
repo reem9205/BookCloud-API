@@ -1,5 +1,8 @@
 // Importing the user service to handle business logic for users
+const profileServices = require('../Services/profileServices');
 const userService = require('../Services/userServices');
+const bookByUserServices = require('../Services/bookByUserServices');
+const bookshelfServices = require('../Services/bookshelfServices');
 
 class UserController {
 
@@ -84,28 +87,38 @@ class UserController {
      */
     async createUser(req, res) {
         try {
-            const { FName, LName, username, email, password, phoneNumber, address, bio, reading_goal } = req.body;
+            const { firstName, lastName, username, email, password } = req.body;
 
-            // Validate required fields
-            if (!FName || !LName || !username || !email || !password) {
-                // Return an error if required fields are missing
-                return res.status(400).json({ message: 'Missing required fields' });
-            }
-
-            // Call createUser in userService to handle both user and profile creation
-            const newUserWithProfile = await userService.createUser({
-                FName, LName, username, email,
-                password, phoneNumber, address, bio, reading_goal
+            // Step 2: Create the user
+            const newUser = await userService.createUser({
+                firstName,
+                lastName,
+                username,
+                email,
+                password,
+                bio: 'N/D'
             });
 
-            // Respond with the created user
-            res.status(201).json(newUserWithProfile);
+            if (!newUser) {
+                // Handle invalid user creation
+                return res.status(401).render('signup', {
+                    error: newUser.message || 'Username already taken please input another one'
+                });
+            }
 
+            // Redirect to additional info page upon successful user creation
+            res.render('additionalInfo', { user_Id: newUser.id });
         } catch (e) {
-            console.error('Error creating user:', e); // Log the error
-            res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
+            console.error('Error creating user:', e);
+
+            // Handle unexpected errors
+            res.status(500).render('signup', {
+                error: 'An unexpected error occurred. Please try again later.'
+            });
         }
     }
+
+
 
     /**
      * Update an existing user along with associated profile.
@@ -116,30 +129,49 @@ class UserController {
     async updateUser(req, res) {
         try {
             const id = parseInt(req.params.id, 10); // Parse the user ID from the request parameters
-            const { FName, LName, address, email, phoneNumber, username, password, bio, reading_goal } = req.body;
+            const { first_name, last_name, address, email, phoneNumber, username, password, bio, readingGoal, picture } = req.body;
 
-            // Validate required fields for update
-            if (!FName || !LName || !address || !email || !phoneNumber || !username || !password || !bio) {
-                // Return 400 if required fields are missing
-                return res.status(400).json({ message: 'Missing required fields' });
-            }
 
-            // Call updateUser in userService to handle the update
-            const success = await userService.updateUser(id, {
-                FName, LName, address, email, password,
-                phoneNumber, username, bio, reading_goal
+            // Call the updateUser service to handle the update
+            const result = await userService.updateUser(id, {
+                first_name, last_name, address, email, password,
+                phoneNumber, username, bio, readingGoal, picture
             });
 
-            if (!success) {
+            if (!result.success) {
                 return res.status(404).json({ message: 'User not found or no changes made' }); // Return 404 if no update occurs
             }
 
-            res.json({ message: 'User updated successfully' }); // Confirm successful update
+            // After successful update, update the session with the new user data
+            const updatedUser = result.user;
+
+            // Set session with the updated user information
+            req.session.user = {
+                user_Id: updatedUser.user_Id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                profile_Id: updatedUser.profile_Id,
+                bio: updatedUser.bio,
+                picture: updatedUser.picture, // If picture is Base64 encoded
+                first_name: updatedUser.first_name,  // Corrected this line
+                last_name: updatedUser.last_name,
+                phoneNumber: updatedUser.phoneNumber,
+                address: updatedUser.address,
+                reading_goal: updatedUser.reading_goal,
+                password: updatedUser.password
+            };
+
+            // Redirect to the editSettingsView
+            return res.redirect(`/api/users/editSettingsView`);
+
         } catch (e) {
-            console.error('Error updating user:', e); // Log the error
-            res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
+            console.error('Error updating user:', e);
+            return res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
         }
     }
+
+
+
 
     /**
      * Delete a user by their ID.
@@ -154,7 +186,7 @@ class UserController {
             if (!success) {
                 return res.status(404).json({ message: 'User not found' }); // Return 404 if user is not found
             }
-            res.json({ message: 'User deleted successfully' }); // Confirm successful deletion
+            res.redirect(`/homepage`);
         } catch (e) {
             console.error('Error deleting user:', e); // Log the error
             res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
@@ -171,24 +203,188 @@ class UserController {
         try {
             const { username, password } = req.body;
 
-            // Validate required fields for sign-in
+            // Validate that username and password are provided
             if (!username || !password) {
-                // Return 400 if required fields are missing
-                return res.status(400).json({ message: 'Missing required fields' });
+                return res.status(400).render('homepage', { error: 'Username and password are required' });
             }
 
-            // Call signIn in userService to validate credentials
-            const success = await userService.signIn({ username, password });
-            if (!success) {
-                return res.status(404).json({ message: 'invalid username or  password to sign in' });
-                // Return 404 if credentials are incorrect
+            // Validate credentials with userService
+            const result = await userService.signIn({ username, password });
+
+            if (!result.success) {
+                // Handle invalid credentials
+                return res.status(401).render('homepage', { error: result.message });
             }
-            res.json({ message: 'Signed in successfully' }); // Confirm successful sign-in
+
+            req.session.user = result.user; // Store user in the session
+            res.redirect(`/api/users/dashboard`);
+
         } catch (e) {
-            console.error('Error during sign-in:', e); // Log the error
-            res.status(500).json({ message: 'Internal server error' }); // Return a generic error response
+            console.error('Error during sign-in:', e);
+            return res.status(500).render('homepage', { error: 'Internal server error' });
         }
     }
-}
 
+    /**
+    * renders signup view
+    * @param {Object} req - The request object
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async signUpView(req, res) {
+        const error = req.query.error || null; // Default to null if no error
+        res.render('signup', { error }); // Pass `error` to the template
+    }
+
+    /**
+    * renders homepage
+    * @param {Object} req - The request object
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async logOutView(req, res) {
+        res.redirect(`/homepage`);
+    }
+
+
+    /**
+    *renders additional info view
+    * @param {Object} req - The request object
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async forAdditionalInfoView(req, res) {
+        try {
+            const userId = req.params.Id; // Get user ID from the URL
+            const { phoneNumber, address, readingGoal, picture, bio } = req.body;
+
+
+
+            // Call the service to update the user
+            const updatedUser = await userService.updateUser(userId, {
+                phoneNumber,
+                address,
+                readingGoal,
+                picture,
+                bio
+            });
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            res.status(200).json({ message: 'User updated successfully', user: updatedUser }); //render if succefull
+        } catch (error) {
+            console.error('Error updating user:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    /**
+    * render dashboard view
+    * @param {Object} req - The request object
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async dashboardView(req, res) {
+        if (!req.session.user) {
+            return res.redirect('/Homepage');
+        }
+
+        try {
+            const data = await userService.getBasicInfoForallViews(req.session.user.user_Id);
+
+            // Fetch bookshelf data
+            const bookshelf = await bookshelfServices.getBookshelfByUsername(req.session.user.username);
+
+
+            res.render('dashboard', { user: req.session.user, data, bookshelf }); //render view
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            // Always pass `bookshelf` to avoid template rendering issues
+            res.status(500).render('dashboard', { user: req.session.user, data: null, bookshelf: [], error: 'Error loading dashboard' });
+        }
+    }
+
+    /**
+    * render other profile view
+    * @param {Object} req - The request object, user id
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async discoverPerson(req, res) {
+        if (!req.session.user) {
+            return res.redirect('/Homepage');
+        }
+
+        try {
+            const data = await userService.getBasicInfoForallViews(req.session.user.user_Id);
+
+
+            // Fetch bookshelf data
+            const bookshelf = await bookshelfServices.getBookshelfByView(req.params.username);
+
+            const profile = await userService.getUserByUsername(req.params.username);
+
+            res.render('discoverPerson', { user: req.session.user, data, bookshelf, profile });
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            // Always pass `bookshelf` to avoid template rendering issues
+            res.status(500).render('dashboard', { user: req.session.user, data: null, bookshelf: [], error: 'Error loading dashboard' });
+        }
+    }
+
+    /**
+        * renders all users view
+        * @param {Object} req - The request object
+        * @param {Object} res - The response object.
+        * @returns {void}
+        */
+    async allUsersView(req, res) {
+        try {
+
+            const user_Id = req.session.user.user_Id;
+
+            if (!user_Id) {
+                return res.redirect('/Homepage');
+            }
+
+            //gets important data
+            const data = await userService.getBasicInfoForallViews(user_Id);
+            const users = await userService.getAllUsersWithProfile();
+
+
+            const success = users && users.length > 0;
+
+
+            res.render('allUsers', { user: req.session.user, users, data, success }); //render view
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            res.status(500).render('allUsers', { error: 'Error loading recommendations' });
+        }
+    }
+
+    /**
+    * settings view
+    * @param {Object} req - The request object
+    * @param {Object} res - The response object.
+    * @returns {void}
+    */
+    async editSettings(req, res) {
+        try {
+
+            const user_Id = req.session.user?.user_Id;
+            if (!user_Id) {
+                return res.redirect('/Homepage');
+            }
+
+            res.render('editProfile', { user: req.session.user }); //render view
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            res.status(500).render('allUsers', { error: 'Error loading recommendations' });
+        }
+    }
+
+
+}
 module.exports = new UserController(); // Export an instance of the UserController
